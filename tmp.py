@@ -31,7 +31,7 @@ cv2.imwrite("img3.png",out)
 """
 
 from scipy.ndimage.filters import gaussian_filter
-img_path = '/mnt/hdd02/ShanghaiTech/part_A/train_data/images/IMG_16.jpg'
+img_path = '/mnt/hdd02/ShanghaiTech/part_A/train_data/images/IMG_31.jpg'
 mat = loadmat(img_path.replace('.jpg','.mat').replace('images','ground-truth').replace('IMG_','GT_IMG_'))
 img= plt.imread(img_path)
 k = np.zeros((img.shape[0],img.shape[1]))

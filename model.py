@@ -7,16 +7,16 @@ class MyModel(nn.Module):
         super(MyModel,self).__init__()
 
         model = models.resnet18(pretrained=True)
+        print(model)
         layers = list(model.children())[:-2]
         encoder = nn.Sequential(*layers)
 
         self.encoder = encoder
         ## ResNet, BagNetの最終fc層なくした事前学習モデル 
 
-        self.decoder_out_chs = [512, 512, 256, 256, 128, 128, 64]
-
+        self.decoder_out_chs = [512, 'Up', 256, 'Up', 128, 'Up' ,128, 'Up', 64, 'Up']
         self.decoder = make_decoder(self.decoder_out_chs)
-        ## とりあえずサイズ戻す??デコーダー
+        ## とりあえずサイズ戻す(upsampleする)デコーダー
 
         self.output_layer = nn.Conv2d(64, 1, kernel_size=1)
 
@@ -35,9 +35,13 @@ def make_decoder(out_chs):
     layers =[]
 
     for out_ch in out_chs:
-        conv2d = nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=dilation, dilation = dilation)
-        layers += [conv2d, nn.BatchNorm2d(out_ch), nn.ReLU(inplace=True)]
-        in_ch = out_ch
+        if type(out_ch) is str:
+            upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+            layers += [upsample]
+        else: 
+            conv2d = nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=dilation, dilation = dilation)
+            layers += [conv2d, nn.BatchNorm2d(out_ch), nn.ReLU(inplace=True)]
+            in_ch = out_ch
 
     return nn.Sequential(*layers)
 
