@@ -1,89 +1,92 @@
-"""
+import os
+import argparse
+
 import torch
 import torch.nn as nn
-import torchvision.models as models
-
-model = models.resnet50(pretrained=True)
-layers = list(model.children())[:-2]
-extracter = nn.Sequential(*layers)
-
-x = torch.rand(1,3,500,500)
-out = extracter(x)
-print(out)
-"""
-
-import cv2
+from torch.optim import lr_scheduler
 import numpy as np
+from scipy.io import loadmat
 from matplotlib import pyplot as plt
+from torchvision import datasets, transforms
 
-from mat4py import loadmat
+from options import opt_args
 
-"""
-img = cv2.imread('/mnt/hdd02/UCF_CC_50/1.jpg')
+from datasets.ShanghaiTech_B import ShanghaiTech_B 
+from my_transform import Gaussion_filtering, Scale, Crop
+from model import MyModel
+from training_tmp import train_epoch
+from validation_tmp import val_epoch
 
-data = loadmat('/mnt/hdd02/UCF_CC_50/1_ann.mat')
+from torchsummary import summary
 
-#for i,location in enumerate(data['image_info']['location']):
-for i,location in enumerate(data['annPoints']):
-    out = cv2.circle(img, (int(location[0]), int(location[1])), 3, (0,0,255), -1)
+def main():
+    ### オプション ###
+    opts = opt_args()
 
-cv2.imwrite("img3.png",out)
-"""
+    #a = torch.rand(1,3,224,224).cuda()
+    #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    #mat = loadmat('/home/junya/Documents/crowd_counting/research/mat_weight/ilsvrc-bag18-sc-epoch-12.mat')
+    #print(mat)
 
-from scipy.ndimage.filters import gaussian_filter
-img_path = '/mnt/hdd02/ShanghaiTech/part_A/train_data/images/IMG_31.jpg'
-mat = loadmat(img_path.replace('.jpg','.mat').replace('images','ground-truth').replace('IMG_','GT_IMG_'))
-img= plt.imread(img_path)
-k = np.zeros((img.shape[0],img.shape[1]))
-#gt = mat["image_info"][0,0][0,0][0]
-gt = mat["image_info"]["location"]
-for i in range(0,len(gt)):
-    if int(gt[i][1])<img.shape[0] and int(gt[i][0])<img.shape[1]:
-        k[int(gt[i][1]),int(gt[i][0])]=1
-k = gaussian_filter(k,15)
-"""
-plt.figure()
-plt.imshow(k,interpolation='nearest',vmin=np.min(k), vmax=np.max(k), cmap='jet')
-plt.colorbar()
-plt.show()
-"""
-import random
-import os
-from PIL import Image
+    scale_method = Scale(opts.crop_scale)
 
-train = True
+    crop_method = Crop(opts.crop_size_h, opts.crop_size_w, opts.crop_position)
 
-gt_path = img_path.replace('.jpg','.h5').replace('images','ground-truth')
-img = Image.open(img_path).convert('RGB')
-target = k
-if train:
-    ratio = 0.5
-    crop_size = (int(img.size[0]*ratio),int(img.size[1]*ratio))
-    rdn_value = random.random()
-    if rdn_value<0.25:
-        dx = 0
-        dy = 0
-    elif rdn_value<0.5:
-        dx = int(img.size[0]*ratio)
-        dy = 0
-    elif rdn_value<0.75:
-        dx = 0
-        dy = int(img.size[1]*ratio)
+    gaussian_method = Gaussion_filtering(opts.gaussian_std)
+
+    normalize_method = transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
+
+    ### データセット ###
+    if opts.phase == 'train':
+        train_set = ShanghaiTech_B(opts.root_path,
+                                   opts.ST_part,
+                                   opts.train_json,
+                                   opts.phase,
+                                   scale_method=scale_method,
+                                   crop_method=crop_method, 
+                                   gaussian_method=gaussian_method,
+                                   normalize_method=normalize_method)
+        val_set = ShanghaiTech_B(opts.root_path,
+                                   opts.ST_part,
+                                   opts.val_json,
+                                   opts.phase,
+                                   scale_method=scale_method,
+                                   crop_method=crop_method, 
+                                   gaussian_method=gaussian_method,
+                                   normalize_method=normalize_method)
     else:
-        dx = int(img.size[0]*ratio)
-        dy = int(img.size[1]*ratio)
+        #test_set = ShanghaiTech_B(opts.root_path, opts.ST_part, opts.train_json, opts.phase, im_transforms)
+        pass
 
-    img = img.crop((dx,dy,crop_size[0]+dx,crop_size[1]+dy))
-    target = target[dy:(crop_size[1]+dy),dx:(crop_size[0]+dx)]
-    if random.random()>0.8:
-        target = np.fliplr(target)
-        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+    train_loader = torch.utils.data.DataLoader(train_set,   
+                                            shuffle=True,
+                                            num_workers=opts.num_workers,
+                                            batch_size=opts.batch_size
+                                            )
 
-target = cv2.resize(target,(int(target.shape[1]/8),int(target.shape[0]/8)),interpolation = cv2.INTER_CUBIC)*64
+    val_loader = torch.utils.data.DataLoader(val_set,   
+                                            shuffle=False,
+                                            num_workers=opts.num_workers,
+                                            batch_size=opts.batch_size
+                                            )
 
-fig = plt.figure()
-a = fig.add_subplot(1,2,1)
-b = fig.add_subplot(1,2,2)
-a.imshow(img)
-b.imshow(target)
-plt.show()
+    ### モデル生成 ###
+    model = MyModel(deconv=False)
+    
+    checkpoint = torch.load('/home/junya/Documents/crowd_counting/research/saved_model/save_90.pth')
+    model.load_state_dict(checkpoint['state_dict'])
+    model.cuda()
+
+    print(model)
+    summary(model, (3,192,256))
+
+    ## 損失関数,オプティマイザ ##
+    criterion = nn.MSELoss(reduction='sum').cuda()
+
+    for epoch in range(opts.start_epoch, opts.num_epochs):
+        train_epoch(epoch, train_loader, model, criterion)
+        val_epoch(epoch, val_loader, model, criterion)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,5 +1,18 @@
+import os
 import random
+import numpy as np
+
+from scipy.ndimage.filters import gaussian_filter
 from PIL import Image, ImageOps
+        
+class Gaussian_Filtering(object):
+    def __init__(self, std):
+        self.std = std
+    
+    def __call__(self, gt_nparray):
+        gt_density = gaussian_filter(gt_nparray, self.std)
+
+        return Image.fromarray(gt_density)
 
 class Scale(object):
     def __init__(self, crop_scale):
@@ -10,7 +23,19 @@ class Scale(object):
     
         return image.resize(crop_size)
 
-class Crop(object):
+class Target_Scale(object):
+    def __init__(self, down_scale_num):
+        self.down_scale_num = down_scale_num
+
+    def __call__(self, target):
+        target = target.resize(size=(target.size[0]//(2**self.down_scale_num), target.size[1]//(2**self.down_scale_num)), resample=Image.BICUBIC)
+        target = np.asarray(target)
+        target = target*((2**self.down_scale_num)**2)
+
+        return Image.fromarray(target)
+
+
+class Corner_Center_Crop(object):
     def __init__(self, crop_size_h, crop_size_w, crop_position=None):
         self.crop_size_h = crop_size_h
         self.crop_size_w = crop_size_w
@@ -59,3 +84,16 @@ class Crop(object):
     def randomize_parameters(self):
         if self.randomize:
             self.crop_position = self.crop_positions[random.randint(0, len(self.crop_positions)-1)]
+
+class Random_Crop(object):
+    def __init__(self, crop_size_h, crop_size_w):
+        self.crop_size_w = crop_size_w
+        self.crop_size_h = crop_size_h
+
+    def __call__(self, image):
+        image = image.crop((self.left_top[0], self.left_top[1], self.left_top[0]+self.crop_size_w, self.left_top[1]+self.crop_size_h))
+
+        return image
+
+    def rc_randomize_parameters(self, image):
+        self.left_top = (random.randint(0,image.size[0]-self.crop_size_w), random.randint(0,image.size[1]-self.crop_size_h))

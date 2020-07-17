@@ -1,12 +1,13 @@
 ### shanghaitsch partBのデータ（image）のパスから,imageとtargetを返す
 import torch
 import torch.utils.data as data
+from torchvision import transforms
 
 import os
 import json
 import numpy as np
 from PIL import Image
-import h5py
+import scipy.io as io
 
 ### pathの画像を読み込み、画像データを返す関数 ###
 def image_loader(image_path):
@@ -16,25 +17,52 @@ def image_loader(image_path):
 
 ### image pathをground truth pathに変換し、ground truthをnumpy配列で返す関数 ###
 def target_loader(image_path):
-    gt_path = image_path.replace('.jpg','.h5').replace('images','ground_truth')
-    with h5py.File(gt_path, 'r') as ground_truth:
-        return np.asarray(ground_truth['density'])
+    mat_path = image_path.replace('.jpg','.mat').replace('images','ground_truth').replace('IMG_','GT_IMG_')
+    with open(mat_path, 'rb') as f:
+        return io.loadmat(f)['image_info'][0,0][0,0][0]
 
 ### jsonファイルからリストを返す関数 ###
 def json_loader(json_path):
     with open(json_path, 'r') as json_data:
         return json.load(json_data)
 
-class ShanghaiTech_B(data.Dataset):
-    def __init__(self, root_path, ST_part, json_file_name, transform=None, image_transform=None, target_transform=None, json_loader=json_loader):
-        self.json_path = os.path.join(root_path, ST_part, json_file_name)
+## location -> imageサイズの空配列にに1でマッピング
+def gt_mapping(image, location):
+    zeropad = np.zeros((image.size[0],image.size[1]))
 
-        self.image_transform = image_transform      # リサイズorクリップ
-        self.target_transform = target_transform    # ガウシャンフィルタ + リサイズorクリップ
-        self.transform = transform      # mean, std 処理 
+    for i in range(0,len(location)):
+        if int(location[i][0]) < image.size[0] and int(location[i][1]) < image.size[1]:
+            zeropad[int(location[i][0]),int(location[i][1])] = 1
+    zeropad = zeropad.T
+
+    return zeropad
+
+class ShanghaiTech_B(data.Dataset):
+    def __init__(self,
+                 root_path, 
+                 ST_part, 
+                 json_file_name, 
+                 phase,
+                 scale_method=None,
+                 target_scale_method=None,
+                 crop_method=None, 
+                 gaussian_method=None,
+                 normalize_method=None):
+
+        if phase == 'train':
+            self.json_path = os.path.join(root_path, ST_part, 'train_data', json_file_name)
+        else:
+            self.json_path = os.path.join(root_path, ST_part, 'test_data', json_file_name)
+
+        self.scale_transform = scale_method
+        self.target_scale_tansform = target_scale_method
+        self.crop_transform = crop_method
+        self.gaussian_transform = gaussian_method
+        self.normalize_transform = normalize_method
 
         self.image_loader = image_loader
         self.target_loader = target_loader
+        self.gt_mapping = gt_mapping
 
         self.image_path_list = json_loader(self.json_path)
 
@@ -45,15 +73,26 @@ class ShanghaiTech_B(data.Dataset):
         image = self.image_loader(self.image_path_list[index])
         target = self.target_loader(self.image_path_list[index])
 
-        if self.image_transform is not None:
-            self.image_transform.randomize_parameters()     # ランダムでクロップ箇所を初期化 
-            image = self.image_transform(image)
+        if self.crop_transform is not None:
+            self.crop_transform.rc_randomize_parameters(image)
 
-        if self.target_transform is not None:
-            target = self.target_transform(target)
+        target_transforms = transforms.Compose([
+            self.gaussian_transform,
+            self.crop_transform,
+            self.target_scale_tansform,
+            transforms.ToTensor()
+        ])
 
-        if self.transform is not None:
-            image = self.transform(image)
+        image_transforms = transforms.Compose([
+            self.crop_transform,
+            transforms.ToTensor(),
+            self.normalize_transform
+        ])
 
-        return image, target
+        target = self.gt_mapping(image, target)
+        tensor_target = target_transforms(target)
+
+        tensor_image = image_transforms(image)
+
+        return tensor_image, tensor_target
     
