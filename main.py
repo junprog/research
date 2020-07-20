@@ -80,6 +80,7 @@ def main():
 
     ### モデル生成 ###
     model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
+    #model = base_model.MyModel(down_scale_num=opts.down_scale_num)
     model.cuda()
 
     """

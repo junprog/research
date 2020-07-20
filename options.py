@@ -10,7 +10,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/res_d3_all_variable_outkernel_1'
+        default='/mnt/hdd02/crownd_counting_results/res_d4_freeze_weight_to40_outkernel_1'
     )
     parser.add_argument(
         '--ST_part',
@@ -74,13 +74,13 @@ def opt_args():
     )
     parser.add_argument(
         '--down_scale_num',
-        default=3,
+        default=4,
         type=int,
         help='Number of Downsampling (e.g. want to use feature maps of Block2 in ResNet: 3)'
     )
     parser.add_argument(
         '--lr',
-        default=0.1, #1e-1
+        default=0.001, #1e-1
         type=float,
         help='Learning Rate'
     )

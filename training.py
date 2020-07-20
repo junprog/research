@@ -10,14 +10,14 @@ from utils import AverageMeter
 def train_epoch(epoch, data_loader, model, criterion, optimizer, epoch_logger, opts, scheduler=None):
     if scheduler is not None:
         scheduler.step()
-    """
+
     if epoch < 40:
         for params in model.encoder.parameters():
             params.requires_grad = False
     else:
         for params in model.encoder.parameters():
             params.requires_grad = True
-    """
+
     
     losses = AverageMeter()
     batch_time = AverageMeter()
