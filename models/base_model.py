@@ -13,11 +13,11 @@ class MyModel(nn.Module):
             self.feature_extracter = make_vgg16_feature_extracter(down_scale_num)
             self.down_channels = make_vgg16_down_channels(down_scale_num)
 
-        ## ResNet, VGG, BagNetの最終fc層なくした事前学習モデル エンコーダー
-        ## channel数を削減するデコーダー
+        ## ResNet, VGG, BagNetの最終fc層なくした事前学習モデル
+        ## channel数を削減する
 
         self.output_layer = nn.Conv2d(64, 1, kernel_size=1)
-        ## とりあえずサイズ戻す(upsampleする)デコーダー
+        ## とりあえずサイズ戻す(upsampleする)
 
     def forward(self, x):
         x = self.feature_extracter(x)

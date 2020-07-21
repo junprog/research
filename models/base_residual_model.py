@@ -7,17 +7,17 @@ class MyModel(nn.Module):
         super(MyModel,self).__init__()
 
         self.feature_extracter = self._make_resnet18_feature_extracter(down_scale_num)
-        ## ResNet, BagNetの最終fc層なくした事前学習モデル エンコーダー
+        ## ResNet, BagNetの最終fc層なくした事前学習モデル
 
         if down_scale_num == 3:
             self.down_channels = self._make_down_channels(block, 2, 128, 64)
         else:
             self.down_channels = nn.Sequential(self._make_down_channels(block, 2, 256, 128),
                                          self._make_down_channels(block, 2, 128, 64))
-        ## channel数を削減するデコーダー
+        ## channel数を削減する
 
         self.output_layer = nn.Conv2d(64, 1, kernel_size=1)
-        ## とりあえずサイズ戻す(upsampleする)デコーダー
+        ## とりあえずサイズ戻す(upsampleする)
 
     def forward(self, x):
         x = self.feature_extracter(x)
