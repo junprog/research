@@ -10,7 +10,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/res_d4_freeze_weight_to40_outkernel_1'
+        default='/mnt/hdd02/crownd_counting_results/number_out'
     )
     parser.add_argument(
         '--ST_part',
@@ -19,8 +19,26 @@ def opt_args():
         help='The part of ShanghaiTech Dataset'
     )
     parser.add_argument(
+        '--load_weight',
+        default='True',
+        type=bool,
+        help='when transfer learning'
+    )
+    parser.add_argument(
+        '--model_path',
+        default='/mnt/hdd02/crownd_counting_results/vgg_dn3_freeze/saved_model/save_100.pth',
+        type=str,
+        help='saved model path'
+    )
+    parser.add_argument(
+        '--model',
+        default='VGG16',
+        type=str,
+        help='use model (ResNet, VGG16)'
+    )
+    parser.add_argument(
         '--phase',
-        default='train',
+        default='test',
         type=str,
         help='Training phase : train, Test phase : test',
     )
@@ -35,6 +53,12 @@ def opt_args():
         default='val.json',
         type=str,
         help='json file name of validation data'
+    )
+    parser.add_argument(
+        '--test_json',
+        default='test.json',
+        type=str,
+        help='json file name of test data'
     )
     parser.add_argument(
         '--gaussian_std',
@@ -74,7 +98,7 @@ def opt_args():
     )
     parser.add_argument(
         '--down_scale_num',
-        default=4,
+        default=3,
         type=int,
         help='Number of Downsampling (e.g. want to use feature maps of Block2 in ResNet: 3)'
     )

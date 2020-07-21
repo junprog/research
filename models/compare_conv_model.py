@@ -30,12 +30,11 @@ def make_resnet18_down_channels(down_scale_num):
     base_ch = 64
     layers = []
 
-    for i in range(down_scale_num, 2, -1):
-        #if i == 2:
-            #conv2d = nn.Conv2d(base_ch, base_ch, kernel_size=3, padding=1)
-            #layers += [conv2d, nn.BatchNorm2d(base_ch), nn.ReLU(inplace=True)]
-        #else:    
+    for i in range(down_scale_num, 2, -1):   
         conv2d = nn.Conv2d(base_ch*(2**(i-2)), base_ch*(2**(i-3)), kernel_size=3, padding=1)
+
+        ########  このパターンを３通り試す！！  #######
+
         layers += [conv2d, nn.BatchNorm2d(base_ch*(2**(i-3))), nn.ReLU(inplace=True)]
         
     return nn.Sequential(*layers)

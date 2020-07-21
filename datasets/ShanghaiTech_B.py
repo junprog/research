@@ -49,6 +49,8 @@ class ShanghaiTech_B(data.Dataset):
                  gaussian_method=None,
                  normalize_method=None):
 
+        self.phase = phase
+
         if phase == 'train':
             self.json_path = os.path.join(root_path, ST_part, 'train_data', json_file_name)
         else:
@@ -73,25 +75,37 @@ class ShanghaiTech_B(data.Dataset):
         image = self.image_loader(self.image_path_list[index])
         target = self.target_loader(self.image_path_list[index])
 
-        if self.crop_transform is not None:
-            self.crop_transform.rc_randomize_parameters(image)
+        if self.phase == 'train':
+            if self.crop_transform is not None:
+                self.crop_transform.rc_randomize_parameters(image)
 
-        target_transforms = transforms.Compose([
-            self.gaussian_transform,
-            self.crop_transform,
-            self.target_scale_tansform,
-            transforms.ToTensor()
-        ])
+            target_transforms = transforms.Compose([
+                self.gaussian_transform,
+                self.crop_transform,
+                self.target_scale_tansform,
+                transforms.ToTensor()
+            ])
 
-        image_transforms = transforms.Compose([
-            self.crop_transform,
-            transforms.ToTensor(),
-            self.normalize_transform
-        ])
+            image_transforms = transforms.Compose([
+                self.crop_transform,
+                transforms.ToTensor(),
+                self.normalize_transform
+            ])
+
+        elif self.phase == 'test':
+            target_transforms = transforms.Compose([
+                self.gaussian_transform,
+                self.target_scale_tansform,
+                transforms.ToTensor()
+            ])
+
+            image_transforms = transforms.Compose([
+                transforms.ToTensor(),
+                self.normalize_transform
+            ])
 
         target = self.gt_mapping(image, target)
         tensor_target = target_transforms(target)
-
         tensor_image = image_transforms(image)
 
         return tensor_image, tensor_target

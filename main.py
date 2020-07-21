@@ -17,6 +17,7 @@ from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_C
 from models import base_model, base_residual_model
 from training import train_epoch
 from validation import val_epoch
+from test import test
 from utils import Logger
 
 from torchsummary import summary
@@ -42,7 +43,7 @@ def main():
 
     normalize_method = transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
 
-    ### データセット ###
+    ### データセット,データローダー作成 ###
     if opts.phase == 'train':
         train_set = ShanghaiTech_B(opts.root_path,
                                    opts.ST_part,
@@ -53,6 +54,7 @@ def main():
                                    crop_method=crop_method, 
                                    gaussian_method=gaussian_method,
                                    normalize_method=normalize_method)
+
         val_set = ShanghaiTech_B(opts.root_path,
                                    opts.ST_part,
                                    opts.val_json,
@@ -62,31 +64,56 @@ def main():
                                    crop_method=crop_method, 
                                    gaussian_method=gaussian_method,
                                    normalize_method=normalize_method)
-    else:
-        #test_set = ShanghaiTech_B(opts.root_path, opts.ST_part, opts.train_json, opts.phase, im_transforms)
-        pass
 
-    train_loader = torch.utils.data.DataLoader(train_set,   
-                                            shuffle=True,
-                                            num_workers=opts.num_workers,
-                                            batch_size=opts.batch_size
-                                            )
+        train_loader = torch.utils.data.DataLoader(train_set,   
+                                                   shuffle=True,
+                                                   num_workers=opts.num_workers,
+                                                   batch_size=opts.batch_size
+                                                   )
 
-    val_loader = torch.utils.data.DataLoader(val_set,   
-                                            shuffle=False,
-                                            num_workers=opts.num_workers,
-                                            batch_size=opts.batch_size
-                                            )
+        val_loader = torch.utils.data.DataLoader(val_set,   
+                                                 shuffle=False,
+                                                 num_workers=opts.num_workers,
+                                                 batch_size=opts.batch_size
+                                                 )
+    elif opts.phase == 'test':
+        test_set = ShanghaiTech_B(opts.root_path,
+                                  opts.ST_part,
+                                  opts.test_json, 
+                                  opts.phase,
+                                  scale_method=None,
+                                  target_scale_method=target_scale_method,
+                                  crop_method=None, 
+                                  gaussian_method=gaussian_method,
+                                  normalize_method=normalize_method)
+        
+        test_loader = torch.utils.data.DataLoader(test_set,
+                                                  shuffle=False,
+                                                  num_workers=opts.num_workers,
+                                                  batch_size=1
+                                                  )
 
     ### モデル生成 ###
-    model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
-    #model = base_model.MyModel(down_scale_num=opts.down_scale_num)
-    model.cuda()
+    #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
+    model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model)
 
-    """
-    model2 = MyModel2(deconv=False)
-    model2.cuda()
-    """
+    if opts.load_weight:
+        check_points = torch.load(opts.model_path)['state_dict']
+        model.load_state_dict(check_points)
+
+        """
+        for saved_key in check_points:
+            if 'encoder' in saved_key:
+                model_key = saved_key.replace('encoder', 'feature_extracter')
+            if 'decoder' in saved_key:
+                model_key = saved_key.replace('decoder', 'down_channels', )
+            
+            print(model.state_dict()[model_key], check_points[saved_key])
+            model.state_dict()[model_key] = check_points[saved_key]
+            print(model.state_dict()[model_key], check_points[saved_key])
+        """
+
+    model.cuda()
 
     print(model)
     summary(model, (3,224,224))
@@ -101,12 +128,18 @@ def main():
     os.mkdir(os.path.join(opts.results_path, 'saved_model'))
     os.mkdir(os.path.join(opts.results_path, 'images'))
 
-    train_logger = Logger(os.path.join(opts.results_path, 'results', 'train.log'), ['epoch', 'loss', 'lr'])
-    val_logger = Logger(os.path.join(opts.results_path, 'results', 'val.log'), ['epoch', 'loss'])
+    if opts.phase == 'train':
+        train_logger = Logger(os.path.join(opts.results_path, 'results', 'train.log'), ['epoch', 'loss', 'lr'])
+        val_logger = Logger(os.path.join(opts.results_path, 'results', 'val.log'), ['epoch', 'loss'])
 
-    for epoch in range(opts.start_epoch, opts.num_epochs+1):
-        train_epoch(epoch, train_loader, model, criterion, optimizer, train_logger, opts, scheduler=scheduler)
-        val_epoch(epoch, val_loader, model, criterion, val_logger, opts)
+        for epoch in range(opts.start_epoch, opts.num_epochs+1):
+            train_epoch(epoch, train_loader, model, criterion, optimizer, train_logger, opts, scheduler=scheduler)
+            val_epoch(epoch, val_loader, model, criterion, val_logger, opts)
+
+    if opts.phase == 'test':
+        test_logger = Logger(os.path.join(opts.results_path, 'results', 'test.log'), ['MAE', 'RMSE'])
+
+        test(test_loader, model, test_logger, opts)
 
 
 if __name__ == '__main__':
