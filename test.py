@@ -67,13 +67,15 @@ def test(data_loader, model, logger, opts):
             a_2 = fig.add_subplot(2,2,3)
             a_3 = fig.add_subplot(2,2,4)
 
+            y, _ = numpy_target.shape
+
             a_1.imshow(numpy_in_1)
             a_1.set_title('Input Image')
             a_2.imshow(numpy_target, cmap='jet')
-            a_2.annotate('{}'.format(int(target_sum.item())), xy=(10, 90), fontsize=16, color='white')
+            a_2.annotate('{}'.format(int(target_sum.item())), xy=(10, y-10), fontsize=16, color='white')
             a_2.set_title('Ground Truth')
             a_3.imshow(numpy_out, cmap='jet')
-            a_3.annotate('{:.3f}'.format(output_sum.item()), xy=(10, 90), fontsize=16, color='white')
+            a_3.annotate('{:.3f}'.format(output_sum.item()), xy=(10, y-10), fontsize=16, color='white')
             a_3.set_title('Prediction')
 
             plt.tight_layout()
