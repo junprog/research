@@ -1,161 +1,149 @@
+import os
+import json
+import argparse
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as f
-from torch.utils.data import DataLoader
+from torch.optim import lr_scheduler
+import numpy as np
+from scipy.io import loadmat
+from matplotlib import pyplot as plt
 from torchvision import datasets, transforms
-import matplotlib.pyplot as plt
 
-class GAP(nn.Module):
-    def __init__(self):
-        super().__init__()
+from options import opt_args
 
-    def forward(self, x):
-        return f.avg_pool2d(x, kernel_size=x.size(2)).view(-1, x.size(1))
+from datasets.ShanghaiTech_B import ShanghaiTech_B 
+from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale, BagNet_Target_Scale
+from models import base_model, base_residual_model
+from training import train_epoch
+from validation import val_epoch
+from test import test
+from utils import Logger
 
-class MyNet(torch.nn.Module):
-    def __init__(self):
-        super(MyNet, self).__init__()
+from torchsummary import summary
 
-        self.conv1 = nn.Conv2d(1,32,3)
-        self.conv2 = nn.Conv2d(32,64,3)
+def main():
+    ### オプション ###
+    opts = opt_args()
 
-        self.bn1 = nn.BatchNorm2d(32)
-        self.bn2 = nn.BatchNorm2d(64)
+    os.mkdir(opts.results_path)
 
-        self.pool = nn.MaxPool2d(2, stride=2)
-        self.relu = nn.ReLU()
+    with open(os.path.join(opts.results_path, 'opts.json'), 'w') as opt_file:
+        json.dump(vars(opts), opt_file)
 
-        self.GAP = GAP()
+    #scale_method = Scale(opts.crop_scale)
+    scale_method = None
 
-        self.fc = nn.Linear(64, 10)
+    if opts.model == 'BagNet':
+        target_scale_method = BagNet_Target_Scale(opts.down_scale_num)
+    else:   
+        target_scale_method = Target_Scale(opts.down_scale_num)
+
+    #crop_method = Corner_Center_Crop(opts.crop_size_h, opts.crop_size_w, opts.crop_position)
+    crop_method = Random_Crop(opts.crop_size_h, opts.crop_size_w)
+
+    gaussian_method = Gaussian_Filtering(opts.gaussian_std)
+
+    normalize_method = transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
+
+    ### データセット,データローダー作成 ###
+    if opts.phase == 'train':
+        train_set = ShanghaiTech_B(opts.root_path,
+                                   opts.ST_part,
+                                   opts.train_json,
+                                   opts.phase,
+                                   scale_method=scale_method,
+                                   target_scale_method=target_scale_method,
+                                   crop_method=crop_method, 
+                                   gaussian_method=gaussian_method,
+                                   normalize_method=normalize_method)
+
+        val_set = ShanghaiTech_B(opts.root_path,
+                                   opts.ST_part,
+                                   opts.val_json,
+                                   opts.phase,
+                                   scale_method=scale_method,
+                                   target_scale_method=target_scale_method,
+                                   crop_method=crop_method, 
+                                   gaussian_method=gaussian_method,
+                                   normalize_method=normalize_method)
+
+        train_loader = torch.utils.data.DataLoader(train_set,   
+                                                   shuffle=True,
+                                                   num_workers=opts.num_workers,
+                                                   batch_size=opts.batch_size
+                                                   )
+
+        val_loader = torch.utils.data.DataLoader(val_set,   
+                                                 shuffle=False,
+                                                 num_workers=opts.num_workers,
+                                                 batch_size=opts.batch_size
+                                                 )
+    elif opts.phase == 'test':
+        test_set = ShanghaiTech_B(opts.root_path,
+                                  opts.ST_part,
+                                  opts.test_json, 
+                                  opts.phase,
+                                  scale_method=None,
+                                  target_scale_method=target_scale_method,
+                                  crop_method=None, 
+                                  gaussian_method=gaussian_method,
+                                  normalize_method=normalize_method)
         
+        test_loader = torch.utils.data.DataLoader(test_set,
+                                                  shuffle=False,
+                                                  num_workers=opts.num_workers,
+                                                  batch_size=1
+                                                  )
 
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
+    ### モデル生成 ###
+    #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
+    model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model)
 
-        x = self.pool(x)
+    if opts.load_weight:
+        check_points = torch.load(opts.model_path)['state_dict']
+        model.load_state_dict(check_points)
 
-        x = self.conv2(x)
-        x = self.bn2(x)
-        x = self.relu(x)
+        """
+        for saved_key in check_points:
+            if 'encoder' in saved_key:
+                model_key = saved_key.replace('encoder', 'feature_extracter')
+            if 'decoder' in saved_key:
+                model_key = saved_key.replace('decoder', 'down_channels', )
+            
+            print(model.state_dict()[model_key], check_points[saved_key])
+            model.state_dict()[model_key] = check_points[saved_key]
+            print(model.state_dict()[model_key], check_points[saved_key])
+        """
 
-        x = self.GAP(x)
+    model.cuda()
 
-        x = self.fc(x)
+    print(model)
+    summary(model, (3,448,448))
 
-        return f.log_softmax(x, dim=1)
+    ## 損失関数,オプティマイザ ##
+    criterion = nn.MSELoss(reduction='mean').cuda()
+    optimizer = torch.optim.Adam(model.parameters(), lr=opts.lr, weight_decay=opts.weight_decay)
+    scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[20, 40, 60, 80], gamma=0.1)
+    #scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[3, 10, 20, 35], gamma=0.1)
 
+    os.mkdir(os.path.join(opts.results_path, 'results'))
+    os.mkdir(os.path.join(opts.results_path, 'saved_model'))
+    os.mkdir(os.path.join(opts.results_path, 'images'))
 
-def load_MNIST(batch=128, intensity=1.0):
-    train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('./data',
-                       train=True,
-                       download=True,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Lambda(lambda x: x * intensity)
-                       ])),
-        batch_size=batch,
-        shuffle=True)
+    if opts.phase == 'train':
+        train_logger = Logger(os.path.join(opts.results_path, 'results', 'train.log'), ['epoch', 'loss', 'lr'])
+        val_logger = Logger(os.path.join(opts.results_path, 'results', 'val.log'), ['epoch', 'loss'])
 
-    test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('./data',
-                       train=False,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Lambda(lambda x: x * intensity)
-                       ])),
-        batch_size=batch,
-        shuffle=True)
+        for epoch in range(opts.start_epoch, opts.num_epochs+1):
+            train_epoch(epoch, train_loader, model, criterion, optimizer, train_logger, opts, scheduler=scheduler)
+            val_epoch(epoch, val_loader, model, criterion, val_logger, opts)
 
-    return {'train': train_loader, 'test': test_loader}
+    if opts.phase == 'test':
+        test_logger = Logger(os.path.join(opts.results_path, 'results', 'test.log'), ['MAE', 'RMSE'])
+
+        test(test_loader, model, test_logger, opts)
 
 
 if __name__ == '__main__':
-    # 学習回数
-    epoch = 20
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # 学習結果の保存用
-    history = {
-        'train_loss': [],
-        'test_loss': [],
-        'test_acc': [],
-    }
-
-    # ネットワークを構築
-    net: torch.nn.Module = MyNet().to(device)
-    print(net)
-
-    # MNISTのデータローダーを取得
-    loaders = load_MNIST()
-
-    optimizer = torch.optim.Adam(params=net.parameters(), lr=0.001)
-
-    for e in range(epoch):
-
-        """ Training Part"""
-        loss = None
-        # 学習開始 (再開)
-        net.train(True)  # 引数は省略可能
-        for i, (data, target) in enumerate(loaders['train']):
-            # 全結合のみのネットワークでは入力を1次元に
-            # print(data.shape)  # torch.Size([128, 1, 28, 28])
-            # data = data.view(-1, 28*28).to(device)
-            data = data.to(device)
-            target = target.to(device)
-            # print(data.shape)  # torch.Size([128, 784])
-
-            optimizer.zero_grad()
-            output = net(data)
-            loss = f.nll_loss(output, target)
-            loss.backward()
-            optimizer.step()
-
-            if i % 10 == 0:
-                print('Training log: {} epoch ({} / 60000 train. data). Loss: {}'.format(e+1,
-                                                                                         (i+1)*128,
-                                                                                         loss.item())
-                      )
-
-        history['train_loss'].append(loss)
-
-        """ Test Part """
-        # 学習のストップ
-        net.eval()  # または net.train(False) でも良い
-        test_loss = 0
-        correct = 0
-
-        with torch.no_grad():
-            for data, target in loaders['test']:
-                data = data.to(device)
-                target = target.to(device)
-                output = net(data)
-                test_loss += f.nll_loss(output, target, reduction='sum').item()
-                pred = output.argmax(dim=1, keepdim=True)
-                correct += pred.eq(target.view_as(pred)).sum().item()
-
-        test_loss /= 10000
-
-        print('Test loss (avg): {}, Accuracy: {}'.format(test_loss,
-                                                         correct / 10000))
-
-        history['test_loss'].append(test_loss)
-        history['test_acc'].append(correct / 10000)
-
-    # 結果の出力と描画
-    print(history)
-    plt.figure()
-    plt.plot(range(1, epoch+1), history['train_loss'], label='train_loss')
-    plt.plot(range(1, epoch+1), history['test_loss'], label='test_loss')
-    plt.xlabel('epoch')
-    plt.legend()
-    plt.savefig('loss_cnn.png')
-
-    plt.figure()
-    plt.plot(range(1, epoch+1), history['test_acc'])
-    plt.title('test accuracy')
-    plt.xlabel('epoch')
-    plt.savefig('test_acc_cnn.png')
+    main()
