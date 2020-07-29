@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-# research
-
-graduation study adopt to MCNN (http://cinslab.com/wp-content/uploads/2019/03/2019_3_7_1.pdf)
-=======
 # Density Estimation for Crowd Counting
 
 群衆カウントを回帰タスクを用いたFCN(Fully Convolution Net)で実装
@@ -39,4 +34,3 @@ default datasets : ShanghaiTech_B
 ```bash
 $ python3 main.py --results_path 'specify results path' --load_weight True --model_path 'saved model path' --phase test
 ```
->>>>>>> develop
