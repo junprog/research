@@ -10,7 +10,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/number_out'
+        default='/mnt/hdd02/crownd_counting_results/bag_d5_base_freeze'
     )
     parser.add_argument(
         '--ST_part',
@@ -20,7 +20,7 @@ def opt_args():
     )
     parser.add_argument(
         '--load_weight',
-        default='True',
+        default=False,
         type=bool,
         help='when transfer learning'
     )
@@ -32,13 +32,13 @@ def opt_args():
     )
     parser.add_argument(
         '--model',
-        default='VGG16',
+        default='BagNet',
         type=str,
-        help='use model (ResNet, VGG16)'
+        help='use model (ResNet, VGG16, BagNet)'
     )
     parser.add_argument(
         '--phase',
-        default='test',
+        default='train',
         type=str,
         help='Training phase : train, Test phase : test',
     )
@@ -98,7 +98,7 @@ def opt_args():
     )
     parser.add_argument(
         '--down_scale_num',
-        default=3,
+        default=5,
         type=int,
         help='Number of Downsampling (e.g. want to use feature maps of Block2 in ResNet: 3)'
     )
@@ -110,7 +110,7 @@ def opt_args():
     )
     parser.add_argument(
         '--batch_size',
-        default=16,
+        default=8,
         type=int,
         help='Batch Size'
     )

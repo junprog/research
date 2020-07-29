@@ -35,6 +35,27 @@ class Target_Scale(object):
         return Image.fromarray(target)
 
 
+class BagNet_Target_Scale(object):
+    def __init__(self, down_scale_num):
+        if down_scale_num == 5:
+            self.down_scale_num = down_scale_num-1
+            self.flag = True
+        else:    
+            self.down_scale_num = down_scale_num
+            self.flag = False
+
+    def __call__(self, target):
+        if self.flag:
+            target = target.resize(size=(target.size[0]//(2**(self.down_scale_num-1)) - 4, target.size[1]//(2**(self.down_scale_num-1)) - 4), resample=Image.BICUBIC)
+        else:    
+            target = target.resize(size=(target.size[0]//(2**(self.down_scale_num-1)) - 2, target.size[1]//(2**(self.down_scale_num-1)) - 2), resample=Image.BICUBIC)
+        
+        target = np.asarray(target)
+        target = target*((2**self.down_scale_num)**2)
+
+        return Image.fromarray(target)
+
+
 class Corner_Center_Crop(object):
     def __init__(self, crop_size_h, crop_size_w, crop_position=None):
         self.crop_size_h = crop_size_h

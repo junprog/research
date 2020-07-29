@@ -1,0 +1,4 @@
+/tmp_image/
+/__pycache__/
+
+*.ipynb

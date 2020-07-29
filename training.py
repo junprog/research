@@ -12,12 +12,11 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, epoch_logger, o
         scheduler.step()
 
     if epoch < 40:
-        for params in model.encoder.parameters():
+        for params in model.feature_extracter.parameters():
             params.requires_grad = False
     else:
-        for params in model.encoder.parameters():
+        for params in model.feature_extracter.parameters():
             params.requires_grad = True
-
     
     losses = AverageMeter()
     batch_time = AverageMeter()

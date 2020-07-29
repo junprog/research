@@ -2,19 +2,23 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 
+from . import bagnet33_res18
+
 class MyModel(nn.Module):
     def __init__(self, down_scale_num=3, model='ResNet'):
         super(MyModel,self).__init__()
 
+        ## feature_extracter : ResNet, VGG, BagNetの最終fc層なくした事前学習モデル
+        ## down_channels : channel数を削減する
         if model == 'ResNet':
             self.feature_extracter = make_resnet18_feature_extracter(down_scale_num)
             self.down_channels = make_resnet18_down_channels(down_scale_num)
-        else:
+        elif model == 'VGG16':
             self.feature_extracter = make_vgg16_feature_extracter(down_scale_num)
             self.down_channels = make_vgg16_down_channels(down_scale_num)
-
-        ## ResNet, VGG, BagNetの最終fc層なくした事前学習モデル
-        ## channel数を削減する
+        elif model == 'BagNet':
+            self.feature_extracter = make_bagnet_feature_extracter(down_scale_num)
+            self.down_channels = make_resnet18_down_channels(down_scale_num)
 
         self.output_layer = nn.Conv2d(64, 1, kernel_size=1)
         ## とりあえずサイズ戻す(upsampleする)
@@ -75,3 +79,19 @@ def make_vgg16_feature_extracter(down_scale_num):
         layers = list(model.features.children())[:-1]
 
     return nn.Sequential(*layers)
+
+def make_bagnet_feature_extracter(down_scale_num):
+    model = bagnet33_res18.bagnet33()
+
+    layers = list(model.children())[:-2]
+
+    extracter = nn.Sequential()
+    for i in range(0, down_scale_num):
+        if i == 0:
+            extracter.add_module('conv2d',layers[0])
+            extracter.add_module('bn2d',layers[1])
+            extracter.add_module('relu',layers[2])
+        else:
+            extracter.add_module('block{}'.format(i),layers[i+2])
+
+    return extracter

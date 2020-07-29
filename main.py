@@ -13,7 +13,7 @@ from torchvision import datasets, transforms
 from options import opt_args
 
 from datasets.ShanghaiTech_B import ShanghaiTech_B 
-from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale
+from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale, BagNet_Target_Scale
 from models import base_model, base_residual_model
 from training import train_epoch
 from validation import val_epoch
@@ -34,7 +34,10 @@ def main():
     #scale_method = Scale(opts.crop_scale)
     scale_method = None
 
-    target_scale_method = Target_Scale(opts.down_scale_num)
+    if opts.model == 'BagNet':
+        target_scale_method = BagNet_Target_Scale(opts.down_scale_num)
+    else:   
+        target_scale_method = Target_Scale(opts.down_scale_num)
 
     #crop_method = Corner_Center_Crop(opts.crop_size_h, opts.crop_size_w, opts.crop_position)
     crop_method = Random_Crop(opts.crop_size_h, opts.crop_size_w)
@@ -116,7 +119,7 @@ def main():
     model.cuda()
 
     print(model)
-    summary(model, (3,224,224))
+    summary(model, (3,448,448))
 
     ## 損失関数,オプティマイザ ##
     criterion = nn.MSELoss(reduction='mean').cuda()
