@@ -1,3 +1,5 @@
+.vscode/
+
 tmp_image/
 __pycache__/
 
