@@ -10,7 +10,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/bag_d5_base_freeze'
+        default='/mnt/hdd02/crownd_counting_results/tmp'
     )
     parser.add_argument(
         '--ST_part',
@@ -26,7 +26,7 @@ def opt_args():
     )
     parser.add_argument(
         '--model_path',
-        default='/mnt/hdd02/crownd_counting_results/vgg_dn3_freeze/saved_model/save_100.pth',
+        default='/mnt/hdd02/crownd_counting_results/res18_d4_residual_freeze/saved_model/save_100.pth',
         type=str,
         help='saved model path'
     )
@@ -110,7 +110,7 @@ def opt_args():
     )
     parser.add_argument(
         '--batch_size',
-        default=8,
+        default=16,
         type=int,
         help='Batch Size'
     )

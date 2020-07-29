@@ -100,21 +100,23 @@ def main():
     #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
     model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model)
 
+    ### パラメータ代入 ###
     if opts.load_weight:
         check_points = torch.load(opts.model_path)['state_dict']
-        model.load_state_dict(check_points)
-
-        """
-        for saved_key in check_points:
+        
+        from collections import OrderedDict
+        new_check_points = OrderedDict()
+        for saved_key, saved_value in check_points.items():
             if 'encoder' in saved_key:
                 model_key = saved_key.replace('encoder', 'feature_extracter')
-            if 'decoder' in saved_key:
+                new_check_points[model_key] = saved_value
+            elif 'decoder' in saved_key:
                 model_key = saved_key.replace('decoder', 'down_channels', )
-            
-            print(model.state_dict()[model_key], check_points[saved_key])
-            model.state_dict()[model_key] = check_points[saved_key]
-            print(model.state_dict()[model_key], check_points[saved_key])
-        """
+                new_check_points[model_key] = saved_value
+            else:
+                new_check_points[saved_key] = saved_value
+
+        model.load_state_dict(new_check_points)
 
     model.cuda()
 
@@ -125,13 +127,12 @@ def main():
     criterion = nn.MSELoss(reduction='mean').cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=opts.lr, weight_decay=opts.weight_decay)
     scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[20, 40, 60, 80], gamma=0.1)
-    #scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[3, 10, 20, 35], gamma=0.1)
-
-    os.mkdir(os.path.join(opts.results_path, 'results'))
-    os.mkdir(os.path.join(opts.results_path, 'saved_model'))
-    os.mkdir(os.path.join(opts.results_path, 'images'))
 
     if opts.phase == 'train':
+        os.mkdir(os.path.join(opts.results_path, 'results'))
+        os.mkdir(os.path.join(opts.results_path, 'saved_model'))
+        os.mkdir(os.path.join(opts.results_path, 'images'))
+
         train_logger = Logger(os.path.join(opts.results_path, 'results', 'train.log'), ['epoch', 'loss', 'lr'])
         val_logger = Logger(os.path.join(opts.results_path, 'results', 'val.log'), ['epoch', 'loss'])
 
@@ -140,6 +141,9 @@ def main():
             val_epoch(epoch, val_loader, model, criterion, val_logger, opts)
 
     if opts.phase == 'test':
+        os.mkdir(os.path.join(opts.results_path, 'results'))
+        os.mkdir(os.path.join(opts.results_path, 'images'))
+
         test_logger = Logger(os.path.join(opts.results_path, 'results', 'test.log'), ['MAE', 'RMSE'])
 
         test(test_loader, model, test_logger, opts)
