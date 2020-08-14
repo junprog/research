@@ -48,53 +48,47 @@ def main():
 
     ### データセット,データローダー作成 ###
     if opts.phase == 'train':
-        train_set = ShanghaiTech_B(opts.root_path,
-                                   opts.ST_part,
-                                   opts.train_json,
-                                   opts.phase,
-                                   scale_method=scale_method,
-                                   target_scale_method=target_scale_method,
-                                   crop_method=crop_method, 
-                                   gaussian_method=gaussian_method,
-                                   normalize_method=normalize_method)
+        train_set = ShanghaiTech_B(opts,
+                                    opts.train_json,
+                                    scale_method=scale_method,
+                                    target_scale_method=target_scale_method,
+                                    crop_method=crop_method, 
+                                    gaussian_method=gaussian_method,
+                                    normalize_method=normalize_method)
 
-        val_set = ShanghaiTech_B(opts.root_path,
-                                   opts.ST_part,
-                                   opts.val_json,
-                                   opts.phase,
-                                   scale_method=scale_method,
-                                   target_scale_method=target_scale_method,
-                                   crop_method=crop_method, 
-                                   gaussian_method=gaussian_method,
-                                   normalize_method=normalize_method)
+        val_set = ShanghaiTech_B(opts,
+                                    opts.val_json,
+                                    scale_method=scale_method,
+                                    target_scale_method=target_scale_method,
+                                    crop_method=crop_method, 
+                                    gaussian_method=gaussian_method,
+                                    normalize_method=normalize_method)
 
         train_loader = torch.utils.data.DataLoader(train_set,   
-                                                   shuffle=True,
-                                                   num_workers=opts.num_workers,
-                                                   batch_size=opts.batch_size
-                                                   )
+                                    shuffle=True,
+                                    num_workers=opts.num_workers,
+                                    batch_size=opts.batch_size
+                                    )
 
         val_loader = torch.utils.data.DataLoader(val_set,   
-                                                 shuffle=False,
-                                                 num_workers=opts.num_workers,
-                                                 batch_size=opts.batch_size
-                                                 )
+                                    shuffle=False,
+                                    num_workers=opts.num_workers,
+                                    batch_size=opts.batch_size
+                                    )
     elif opts.phase == 'test':
-        test_set = ShanghaiTech_B(opts.root_path,
-                                  opts.ST_part,
-                                  opts.test_json, 
-                                  opts.phase,
-                                  scale_method=None,
-                                  target_scale_method=target_scale_method,
-                                  crop_method=None, 
-                                  gaussian_method=gaussian_method,
-                                  normalize_method=normalize_method)
+        test_set = ShanghaiTech_B(opts,
+                                    opts.test_json, 
+                                    scale_method=None,
+                                    target_scale_method=target_scale_method,
+                                    crop_method=None, 
+                                    gaussian_method=gaussian_method,
+                                    normalize_method=normalize_method)
         
         test_loader = torch.utils.data.DataLoader(test_set,
-                                                  shuffle=False,
-                                                  num_workers=opts.num_workers,
-                                                  batch_size=1
-                                                  )
+                                    shuffle=False,
+                                    num_workers=opts.num_workers,
+                                    batch_size=1
+                                    )
 
     ### モデル生成 ###
     #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)

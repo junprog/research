@@ -16,7 +16,7 @@ def val_epoch(epoch, data_loader, model, criterion, epoch_logger, opts):
     data_time = AverageMeter()
 
     end_time = time.time()
-    for i, (inputs, target) in enumerate(data_loader):
+    for i, (inputs, target, _) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
 
         inputs = inputs.cuda()

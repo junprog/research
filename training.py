@@ -23,7 +23,7 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, epoch_logger, o
     data_time = AverageMeter()
 
     end_time = time.time()
-    for i, (inputs, target) in enumerate(data_loader):
+    for i, (inputs, target, _) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
 
         inputs = inputs.cuda()
