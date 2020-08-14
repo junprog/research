@@ -18,11 +18,12 @@ def test(data_loader, model, logger, opts):
     data_time = AverageMeter()
 
     end_time = time.time()
-    for i, (inputs, target) in enumerate(data_loader):
+    for i, (inputs, target, num) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
 
         inputs = inputs.cuda()
         target = target.cuda()
+        num = num.cuda()
 
         outputs = model(inputs)
 
@@ -30,8 +31,8 @@ def test(data_loader, model, logger, opts):
         output_sum = torch.sum(outputs)
         target_sum = torch.round(torch.sum(target))
 
-        MAE = torch.abs(torch.sub(output_sum, target_sum)) 
-        RMSE_tmp = torch.pow(torch.sub(output_sum, target_sum),2)
+        MAE = torch.abs(torch.sub(output_sum, num)) 
+        RMSE_tmp = torch.pow(torch.sub(output_sum, num),2)
 
         MAE_losses.update(MAE.item(), inputs.size(0))
         RMSE_losses.update(RMSE_tmp.item(), inputs.size(0))
@@ -72,7 +73,7 @@ def test(data_loader, model, logger, opts):
             a_1.imshow(numpy_in_1)
             a_1.set_title('Input Image')
             a_2.imshow(numpy_target, cmap='jet')
-            a_2.annotate('{}'.format(int(target_sum.item())), xy=(10, y-10), fontsize=16, color='white')
+            a_2.annotate('{}'.format(int(num)), xy=(10, y-10), fontsize=16, color='white')
             a_2.set_title('Ground Truth')
             a_3.imshow(numpy_out, cmap='jet')
             a_3.annotate('{:.3f}'.format(output_sum.item()), xy=(10, y-10), fontsize=16, color='white')

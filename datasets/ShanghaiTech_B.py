@@ -39,22 +39,23 @@ def gt_mapping(image, location):
 
 class ShanghaiTech_B(data.Dataset):
     def __init__(self,
-                 root_path, 
-                 ST_part, 
+                 opts,
                  json_file_name, 
-                 phase,
                  scale_method=None,
                  target_scale_method=None,
                  crop_method=None, 
                  gaussian_method=None,
                  normalize_method=None):
 
-        self.phase = phase
+        self.phase = opts.phase
+        self.model = opts.model
+        self.crop_size_w = opts.crop_size_w
+        self.crop_size_h = opts.crop_size_h
 
-        if phase == 'train':
-            self.json_path = os.path.join(root_path, ST_part, 'train_data', json_file_name)
+        if opts.phase == 'train':
+            self.json_path = os.path.join(opts.root_path, opts.ST_part, 'train_data', json_file_name)
         else:
-            self.json_path = os.path.join(root_path, ST_part, 'test_data', json_file_name)
+            self.json_path = os.path.join(opts.root_path, opts.ST_part, 'test_data', json_file_name)
 
         self.scale_transform = scale_method
         self.target_scale_tansform = target_scale_method
@@ -79,6 +80,10 @@ class ShanghaiTech_B(data.Dataset):
             if self.crop_transform is not None:
                 self.crop_transform.rc_randomize_parameters(image)
 
+            if self.model == 'BagNet':
+                self.target_scale_tansform.calc_scale_w(self.crop_size_w)
+                self.target_scale_tansform.calc_scale_h(self.crop_size_h)
+
             target_transforms = transforms.Compose([
                 self.gaussian_transform,
                 self.crop_transform,
@@ -91,8 +96,18 @@ class ShanghaiTech_B(data.Dataset):
                 transforms.ToTensor(),
                 self.normalize_transform
             ])
+
+            num = len(target)
+            target = self.gt_mapping(image, target)
+            tensor_target = target_transforms(target)
+            tensor_image = image_transforms(image)
 
         elif self.phase == 'test':
+            if self.model == 'BagNet':
+                w, h = image.size()
+                self.target_scale_tansform.calc_scale_w(w)
+                self.target_scale_tansform.calc_scale_h(h)
+
             target_transforms = transforms.Compose([
                 self.gaussian_transform,
                 self.target_scale_tansform,
@@ -104,9 +119,10 @@ class ShanghaiTech_B(data.Dataset):
                 self.normalize_transform
             ])
 
-        target = self.gt_mapping(image, target)
-        tensor_target = target_transforms(target)
-        tensor_image = image_transforms(image)
+            num = len(target)
+            target = self.gt_mapping(image, target)
+            tensor_target = target_transforms(target)
+            tensor_image = image_transforms(image)
 
-        return tensor_image, tensor_target
+        return tensor_image, tensor_target, num
     
