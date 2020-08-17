@@ -8,3 +8,4 @@ __pycache__/
 
 torchsummary/
 pytorch-summary/
+json_file/

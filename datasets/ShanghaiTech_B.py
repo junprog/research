@@ -53,9 +53,9 @@ class ShanghaiTech_B(data.Dataset):
         self.crop_size_h = opts.crop_size_h
 
         if opts.phase == 'train':
-            self.json_path = os.path.join(opts.root_path, opts.ST_part, 'train_data', json_file_name)
+            self.json_path = os.path.join('json_file', json_file_name)
         else:
-            self.json_path = os.path.join(opts.root_path, opts.ST_part, 'test_data', json_file_name)
+            self.json_path = os.path.join('json_file', json_file_name)
 
         self.scale_transform = scale_method
         self.target_scale_tansform = target_scale_method

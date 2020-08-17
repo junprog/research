@@ -122,7 +122,7 @@ def opt_args():
     )
     parser.add_argument(
         '--start_epoch',
-        default=41,
+        default=1,
         type=int,
         help='Number of the begining epoch'
     )
