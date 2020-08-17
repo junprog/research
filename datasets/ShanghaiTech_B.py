@@ -104,7 +104,7 @@ class ShanghaiTech_B(data.Dataset):
 
         elif self.phase == 'test':
             if self.model == 'BagNet':
-                w, h = image.size()
+                w, h = image.size
                 self.target_scale_tansform.calc_scale_w(w)
                 self.target_scale_tansform.calc_scale_h(h)
 
