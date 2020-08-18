@@ -28,14 +28,17 @@ def test(data_loader, model, logger, opts):
         input_4.append(inputs[:,:,w/2:w,0:h/2])
         input_4.append(inputs[:,:,0:w/2,h/2:h])
         input_4.append(inputs[:,:,w/2:w,h/2:h])
-        
 
-        inputs = inputs.cuda()
+        output_sum = 0
+        for one_input in input_4:
+            one_input = one_input.cuda()
+            outputs = model(one_input)
+            output_sum += torch.sum(outputs)
+
         num = num.cuda()
 
         outputs = model(inputs)
 
-        #loss = criterion(outputs, target)
         output_sum = torch.sum(outputs)
 
         MAE = torch.abs(torch.sub(output_sum, num)) 
