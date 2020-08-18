@@ -38,5 +38,6 @@ $ python main.py --root_path 'dataset path' --results_path 'specify abs path' --
 default datasets : ShanghaiTech_B
 
 ```bash
+
 $ python main.py --root_path 'dataset path' --results_path 'specify results path' --load_weight True --model_path 'saved model path' --phase test
 ```
