@@ -5,3 +5,7 @@ tmp_image/
 __pycache__/
 
 *.ipynb
+
+torchsummary/
+pytorch-summary/
+json_file/

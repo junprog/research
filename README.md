@@ -21,16 +21,23 @@
     * Target_Scale
     * BagNet_Target_Scale
 
+## Creating jsonfile
+
+```bash
+$ python create_json.py 'dataset path(~/images)' 'phase(train or test)'
+```
+
 ## Training phase
 default datasets : ShanghaiTech_B
 
 ```bash
-$ python3 main.py --results_path 'specify abs path' --phase train
+$ python main.py --root_path 'dataset path' --results_path 'specify abs path' --phase train
 ```
 
 ## Test phase
 default datasets : ShanghaiTech_B
 
 ```bash
-$ python3 main.py --results_path 'specify results path' --load_weight True --model_path 'saved model path' --phase test
+
+$ python main.py --root_path 'dataset path' --results_path 'specify results path' --load_weight True --model_path 'saved model path' --phase test
 ```
