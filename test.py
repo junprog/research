@@ -21,21 +21,28 @@ def test(data_loader, model, logger, opts):
     for i, (inputs, target, num) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
 
+        input_4 = []
+        _, _, w, h = inputs.shape
+
+        input_4.append(inputs[:,:,0:w/2,0:h/2])
+        input_4.append(inputs[:,:,w/2:w,0:h/2])
+        input_4.append(inputs[:,:,0:w/2,h/2:h])
+        input_4.append(inputs[:,:,w/2:w,h/2:h])
+        
+
         inputs = inputs.cuda()
-        target = target.cuda()
         num = num.cuda()
 
         outputs = model(inputs)
 
         #loss = criterion(outputs, target)
         output_sum = torch.sum(outputs)
-        target_sum = torch.round(torch.sum(target))
 
         MAE = torch.abs(torch.sub(output_sum, num)) 
         RMSE_tmp = torch.pow(torch.sub(output_sum, num),2)
 
-        MAE_losses.update(MAE.item(), inputs.size(0))
-        RMSE_losses.update(RMSE_tmp.item(), inputs.size(0))
+        MAE_losses.update(MAE.cpu().item(), inputs.size(0))
+        RMSE_losses.update(RMSE_tmp.cpu().item(), inputs.size(0))
 
         batch_time.update(time.time() - end_time)
         end_time = time.time()

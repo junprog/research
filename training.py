@@ -78,17 +78,22 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, epoch_logger, o
     numpy_in_2 = numpy_in_2.transpose(1,2,0)
     numpy_in_2 = numpy_in_2*std+mean
 
-    numpy_in_3 = inputs[2,:,:,:].to('cpu').detach().numpy().copy()
+    ## temporaly change
+    #numpy_in_3 = inputs[2,:,:,:].to('cpu').detach().numpy().copy()
+    numpy_in_3 = inputs[0,:,:,:].to('cpu').detach().numpy().copy()
     numpy_in_3 = numpy_in_3.transpose(1,2,0)
     numpy_in_3 = numpy_in_3*std+mean
 
-    numpy_in_4 = inputs[3,:,:,:].to('cpu').detach().numpy().copy()
+    #numpy_in_4 = inputs[3,:,:,:].to('cpu').detach().numpy().copy()
+    numpy_in_4 = inputs[1,:,:,:].to('cpu').detach().numpy().copy()
     numpy_in_4 = numpy_in_4.transpose(1,2,0)
     numpy_in_4 = numpy_in_4*std+mean
 
 
-    numpy_out = outputs[0:4,:,:,:].to('cpu').detach().numpy().copy().squeeze()
-    numpy_target = target[0:4,:,:,:].to('cpu').detach().numpy().copy().squeeze()
+    #numpy_out = outputs[0:4,:,:,:].to('cpu').detach().numpy().copy().squeeze()
+    numpy_out = np.concatenate([outputs[:,:,:,:].to('cpu').detach().numpy().copy().squeeze(), outputs[:,:,:,:].to('cpu').detach().numpy().copy().squeeze()], 0)
+    #numpy_target = target[0:4,:,:,:].to('cpu').detach().numpy().copy().squeeze()
+    numpy_target = np.concatenate([target[:,:,:,:].to('cpu').detach().numpy().copy().squeeze(), target[:,:,:,:].to('cpu').detach().numpy().copy().squeeze()], 0)
 
     fig = plt.figure()
     a_1 = fig.add_subplot(3,4,1)

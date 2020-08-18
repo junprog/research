@@ -7,8 +7,8 @@ import glob
 
 if __name__ == '__main__':
     # path to folder that contains images
-    img_folder = sys.argv[1]
-    phase = sys.argv[2]
+    img_folder = sys.argv[1] ### datas dir path (~/images)
+    phase = sys.argv[2] ### phase (train or test)
 
     if os.path.isdir('json_file') == False:
         os.mkdir('json_file')

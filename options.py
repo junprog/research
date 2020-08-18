@@ -10,7 +10,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/bag_5_train'
+        default='/mnt/hdd02/crownd_counting_results/deepbag33_4_test2'
     )
     parser.add_argument(
         '--ST_part',
@@ -20,25 +20,31 @@ def opt_args():
     )
     parser.add_argument(
         '--load_weight',
-        default=False,
+        default=True,
         type=bool,
         help='when transfer learning'
     )
     parser.add_argument(
         '--model_path',
-        default='/mnt/hdd02/crownd_counting_results/bag_5_train/saved_model/save_40.pth',
+        default='/mnt/hdd02/crownd_counting_results/deepbag33_4_train2/saved_model/save_100.pth',
         type=str,
         help='saved model path'
     )
     parser.add_argument(
         '--model',
-        default='BagNet',
+        default='BagNet_base50',
         type=str,
-        help='use model (ResNet, VGG16, BagNet)'
+        help='use model (ResNet, VGG16, BagNet, BagNet_base50)'
+    )
+    parser.add_argument(
+        '--bag_rf_size',
+        default=33,
+        type=int,
+        help='if you use BagNet_base50, you can choise receptive fields size(33, 17 or 9)'
     )
     parser.add_argument(
         '--phase',
-        default='train',
+        default='test',
         type=str,
         help='Training phase : train, Test phase : test',
     )
@@ -98,19 +104,19 @@ def opt_args():
     )
     parser.add_argument(
         '--down_scale_num',
-        default=5,
+        default=4,
         type=int,
         help='Number of Downsampling (e.g. want to use feature maps of Block2 in ResNet: 3)'
     )
     parser.add_argument(
         '--lr',
-        default=0.001, #1e-1
+        default=0.001, #1e-3
         type=float,
         help='Learning Rate'
     )
     parser.add_argument(
         '--batch_size',
-        default=8,
+        default=16,
         type=int,
         help='Batch Size'
     )

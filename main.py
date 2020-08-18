@@ -34,7 +34,7 @@ def main():
     #scale_method = Scale(opts.crop_scale)
     scale_method = None
 
-    if opts.model == 'BagNet':
+    if opts.model == 'BagNet' or 'BagNet_base50':
         target_scale_method = BagNet_Target_Scale(opts.down_scale_num)
     else:   
         target_scale_method = Target_Scale(opts.down_scale_num)
@@ -92,8 +92,11 @@ def main():
 
     ### モデル生成 ###
     #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
-    model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model)
-
+    model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model, bag_rf_size=opts.bag_rf_size)
+    model.cuda()
+    if opts.phase == 'train':
+        model.modules = nn.DataParallel(model.modules)
+    
     ### パラメータ代入 ###
     if opts.load_weight:
         check_points = torch.load(opts.model_path)['state_dict']
@@ -112,10 +115,8 @@ def main():
 
         model.load_state_dict(new_check_points)
 
-    model.cuda()
-
     print(model)
-    summary(model, (3,448,448))
+    #summary(model, (3,1024,768))
 
     ## 損失関数,オプティマイザ ##
     criterion = nn.MSELoss(reduction='mean').cuda()
