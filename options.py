@@ -10,7 +10,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/deepbag33_4_test2'
+        default='/mnt/hdd02/crownd_counting_results/deepbag33_3_train'
     )
     parser.add_argument(
         '--ST_part',
@@ -20,7 +20,7 @@ def opt_args():
     )
     parser.add_argument(
         '--load_weight',
-        default=True,
+        default=False,
         type=bool,
         help='when transfer learning'
     )
@@ -44,7 +44,7 @@ def opt_args():
     )
     parser.add_argument(
         '--phase',
-        default='test',
+        default='train',
         type=str,
         help='Training phase : train, Test phase : test',
     )
@@ -104,13 +104,13 @@ def opt_args():
     )
     parser.add_argument(
         '--down_scale_num',
-        default=4,
+        default=3,
         type=int,
         help='Number of Downsampling (e.g. want to use feature maps of Block2 in ResNet: 3)'
     )
     parser.add_argument(
         '--lr',
-        default=0.001, #1e-3
+        default=1e-5, #1e-3 ~ 1e-5
         type=float,
         help='Learning Rate'
     )

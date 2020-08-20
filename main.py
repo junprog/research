@@ -95,7 +95,9 @@ def main():
     model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model, bag_rf_size=opts.bag_rf_size)
     model.cuda()
     if opts.phase == 'train':
-        model.modules = nn.DataParallel(model.modules)
+        model.feature_extracter = nn.DataParallel(model.feature_extracter)
+        model.down_channels = nn.DataParallel(model.down_channels)
+        model.output_layer = nn.DataParallel(model.output_layer)
     
     ### パラメータ代入 ###
     if opts.load_weight:
@@ -108,7 +110,10 @@ def main():
                 model_key = saved_key.replace('encoder', 'feature_extracter')
                 new_check_points[model_key] = saved_value
             elif 'decoder' in saved_key:
-                model_key = saved_key.replace('decoder', 'down_channels', )
+                model_key = saved_key.replace('decoder', 'down_channels')
+                new_check_points[model_key] = saved_value
+            elif '.module' in saved_key:
+                model_key = saved_key.replace('.module', '')
                 new_check_points[model_key] = saved_value
             else:
                 new_check_points[saved_key] = saved_value
