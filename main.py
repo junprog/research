@@ -34,8 +34,8 @@ def main():
     #scale_method = Scale(opts.crop_scale)
     scale_method = None
 
-    if opts.model == 'BagNet':
-        target_scale_method = BagNet_Target_Scale(opts.down_scale_num)
+    if opts.model == 'BagNet' or 'BagNet_base50':
+        target_scale_method = BagNet_Target_Scale(opts.down_scale_num, opts.bag_rf_size)
     else:   
         target_scale_method = Target_Scale(opts.down_scale_num)
 
@@ -92,8 +92,13 @@ def main():
 
     ### モデル生成 ###
     #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
-    model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model)
-
+    model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model, bag_rf_size=opts.bag_rf_size)
+    model.cuda()
+    if opts.phase == 'train':
+        model.feature_extracter = nn.DataParallel(model.feature_extracter)
+        model.down_channels = nn.DataParallel(model.down_channels)
+        model.output_layer = nn.DataParallel(model.output_layer)
+    
     ### パラメータ代入 ###
     if opts.load_weight:
         check_points = torch.load(opts.model_path)['state_dict']
@@ -105,14 +110,15 @@ def main():
                 model_key = saved_key.replace('encoder', 'feature_extracter')
                 new_check_points[model_key] = saved_value
             elif 'decoder' in saved_key:
-                model_key = saved_key.replace('decoder', 'down_channels', )
+                model_key = saved_key.replace('decoder', 'down_channels')
+                new_check_points[model_key] = saved_value
+            elif '.module' in saved_key:
+                model_key = saved_key.replace('.module', '')
                 new_check_points[model_key] = saved_value
             else:
                 new_check_points[saved_key] = saved_value
 
         model.load_state_dict(new_check_points)
-
-    model.cuda()
 
     print(model)
     summary(model, (3,448,448))

@@ -37,47 +37,41 @@ class Target_Scale(object):
 
 ### BagNetの特殊な出力マップサイズに対応した Target Scaleクラス ###
 class BagNet_Target_Scale(object):
-    def __init__(self, down_scale_num):
-        if down_scale_num == 5:
-            self.down_scale_num = down_scale_num
-            self.flag = True
-        else:    
-            self.down_scale_num = down_scale_num
-            self.flag = False
+    def __init__(self, down_scale_num, bag_rf_size):
+        if bag_rf_size == 33:
+            self.bag_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1]}
+        elif bag_rf_size == 17:
+            self.bag_dict = {'kernel':[3,3,3,3,1],'stride':[1,2,2,2,1]}
+        elif bag_rf_size == 9:
+            self.bag_dict = {'kernel':[3,3,3,1,1],'stride':[1,2,2,2,1]}
+
+        self.down_scale_num = down_scale_num
 
     def calc_scale_w(self, input_size):
-        bag33_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1]}
         output_size_w = input_size
 
         for i in range(0, self.down_scale_num):
             if i < self.down_scale_num:
-                output_size_w = math.floor(((output_size_w-bag33_dict['kernel'][i])/bag33_dict['stride'][i])+1)
+                output_size_w = math.floor(((output_size_w - self.bag_dict['kernel'][i]) / self.bag_dict['stride'][i]) + 1)
 
+        self.output_size_w = output_size_w
         self.scale_w = input_size/output_size_w
 
     def calc_scale_h(self, input_size):
-        bag33_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1]}
         output_size_h = input_size
 
         for i in range(0, self.down_scale_num):
             if i < self.down_scale_num:
-                output_size_h = math.floor(((output_size_h-bag33_dict['kernel'][i])/bag33_dict['stride'][i])+1)
+                output_size_h = math.floor(((output_size_h - self.bag_dict['kernel'][i]) / self.bag_dict['stride'][i]) + 1)
 
+        self.output_size_h = output_size_h
         self.scale_h = input_size/output_size_h
 
     def __call__(self, target):
-        if self.flag:
-            target = target.resize(size=(target.size[0]//(2**(self.down_scale_num-2)) - 4, target.size[1]//(2**(self.down_scale_num-2)) - 4), resample=Image.BICUBIC)
-            target = np.asarray(target)
-            target = target*(self.scale_h*self.scale_w)
-        else:
-            target = target.resize(size=(target.size[0]//(2**(self.down_scale_num-1)) - 2, target.size[1]//(2**(self.down_scale_num-1)) - 2), resample=Image.BICUBIC)
-            if self.down_scale_num == 3:
-                target = np.asarray(target)
-                target = target*(self.scale_h*self.scale_w)
-            else:
-                target = np.asarray(target)
-                target = target*(self.scale_h*self.scale_w)
+
+        target = target.resize(size=(self.output_size_w, self.output_size_h), resample=Image.BICUBIC)
+        target = np.asarray(target)
+        target = target*(self.scale_h*self.scale_w)
 
         return Image.fromarray(target)
 

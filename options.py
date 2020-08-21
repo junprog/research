@@ -10,7 +10,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/bag_5_train'
+        default='/mnt/hdd02/crownd_counting_results/deepbag17_5_train'
     )
     parser.add_argument(
         '--ST_part',
@@ -26,15 +26,21 @@ def opt_args():
     )
     parser.add_argument(
         '--model_path',
-        default='/mnt/hdd02/crownd_counting_results/bag_5_train/saved_model/save_40.pth',
+        default='/mnt/hdd02/crownd_counting_results/deepbag33_4_train2/saved_model/save_100.pth',
         type=str,
         help='saved model path'
     )
     parser.add_argument(
         '--model',
-        default='BagNet',
+        default='BagNet_base50',
         type=str,
-        help='use model (ResNet, VGG16, BagNet)'
+        help='use model (ResNet, VGG16, BagNet, BagNet_base50)'
+    )
+    parser.add_argument(
+        '--bag_rf_size',
+        default=17,
+        type=int,
+        help='if you use BagNet_base50, you can choise receptive fields size(33, 17 or 9)'
     )
     parser.add_argument(
         '--phase',
@@ -104,13 +110,13 @@ def opt_args():
     )
     parser.add_argument(
         '--lr',
-        default=0.001, #1e-1
+        default=1e-5, #1e-3 ~ 1e-5
         type=float,
         help='Learning Rate'
     )
     parser.add_argument(
         '--batch_size',
-        default=8,
+        default=2,
         type=int,
         help='Batch Size'
     )

@@ -47,7 +47,7 @@ class BasicBlock(nn.Module):
         return out
 
 class BagNet(nn.Module):
-
+    
     def __init__(self, block, layers, strides=[1, 2, 2, 2], kernel3=[0, 0, 0, 0], num_classes=1000, avg_pool=True):
         self.inplanes = 64
         super(BagNet, self).__init__()
@@ -90,15 +90,6 @@ class BagNet(nn.Module):
                     self.cnt += 1
                     m.running_mean, m.running_var = torch.from_numpy(self.params['params'][0][self.cnt][1][:,0]).squeeze(), torch.from_numpy((self.params['params'][0][self.cnt][1][:,1] ** 2) - m.eps).squeeze()
                     self.cnt += 1
-        """
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-        """
 
     def _make_layer(self, block, planes, blocks, stride=1, kernel3=0, prefix=''):
         downsample = None
