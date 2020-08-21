@@ -139,5 +139,5 @@ def val_epoch(epoch, data_loader, model, criterion, epoch_logger, opts):
         d_2.imshow(numpy_target[3], cmap='jet')
         d_3.imshow(numpy_out[3], cmap='jet')
 
-        plt.savefig(os.path.join(opts.results_path, 'images', 'shanghaitech_partB_tr_fromMSE_{}.png'.format(epoch)))
+        plt.savefig(os.path.join(opts.results_path, 'images', 'shanghaitech_partB_vl_fromMSE_{}.png'.format(epoch)))
         plt.close(fig)
