@@ -10,7 +10,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/deepbag33_3_train'
+        default='/mnt/hdd02/crownd_counting_results/deepbag17_5_train'
     )
     parser.add_argument(
         '--ST_part',
@@ -38,7 +38,7 @@ def opt_args():
     )
     parser.add_argument(
         '--bag_rf_size',
-        default=33,
+        default=17,
         type=int,
         help='if you use BagNet_base50, you can choise receptive fields size(33, 17 or 9)'
     )
@@ -104,7 +104,7 @@ def opt_args():
     )
     parser.add_argument(
         '--down_scale_num',
-        default=3,
+        default=5,
         type=int,
         help='Number of Downsampling (e.g. want to use feature maps of Block2 in ResNet: 3)'
     )
@@ -116,7 +116,7 @@ def opt_args():
     )
     parser.add_argument(
         '--batch_size',
-        default=16,
+        default=2,
         type=int,
         help='Batch Size'
     )

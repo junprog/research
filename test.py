@@ -23,7 +23,6 @@ def test(data_loader, model, logger, opts):
             data_time.update(time.time() - end_time)
 
             inputs = inputs.cuda()
-            target = target.cuda()
             num = num.cuda()
 
             outputs = model(inputs)
@@ -60,7 +59,9 @@ def test(data_loader, model, logger, opts):
                 numpy_in_1 = numpy_in_1*std+mean
 
                 numpy_out = outputs[:,:,:,:].to('cpu').detach().numpy().copy().squeeze()
-                numpy_target = target[:,:,:,:].to('cpu').detach().numpy().copy().squeeze()
+                #numpy_target = target[:,:,:,:].to('cpu').detach().numpy().copy().squeeze()
+                numpy_target = target[:,:,:,:].detach().numpy().copy().squeeze()
+
 
                 fig = plt.figure()
                 a_1 = fig.add_subplot(2,1,1)

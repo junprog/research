@@ -35,7 +35,7 @@ def main():
     scale_method = None
 
     if opts.model == 'BagNet' or 'BagNet_base50':
-        target_scale_method = BagNet_Target_Scale(opts.down_scale_num)
+        target_scale_method = BagNet_Target_Scale(opts.down_scale_num, opts.bag_rf_size)
     else:   
         target_scale_method = Target_Scale(opts.down_scale_num)
 
@@ -121,7 +121,7 @@ def main():
         model.load_state_dict(new_check_points)
 
     print(model)
-    #summary(model, (3,1024,768))
+    summary(model, (3,448,448))
 
     ## 損失関数,オプティマイザ ##
     criterion = nn.MSELoss(reduction='mean').cuda()
