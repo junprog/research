@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from utils import AverageMeter
 
-def test(data_loader, model, logger, opts):
+def test(data_loader, model, logger, device, opts):
 
     model.eval()
 
@@ -22,15 +22,16 @@ def test(data_loader, model, logger, opts):
         for i, (inputs, target, num) in enumerate(data_loader):
             data_time.update(time.time() - end_time)
 
-            inputs = inputs.cuda()
-            num = num.cuda()
+            inputs = inputs.to(device)
+            #num = torch.tensor(num, dtype=torch.float32)
+            #num = num.cuda()
 
             outputs = model(inputs)
 
             output_sum = torch.sum(outputs)
 
-            MAE = torch.abs(torch.sub(output_sum, num)) 
-            RMSE_tmp = torch.pow(torch.sub(output_sum, num),2)
+            MAE = torch.abs(torch.sub(output_sum, num.item())) 
+            RMSE_tmp = torch.pow(torch.sub(output_sum, num.item()),2)
 
             MAE_losses.update(MAE.cpu().item(), inputs.size(0))
             RMSE_losses.update(RMSE_tmp.cpu().item(), inputs.size(0))

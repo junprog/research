@@ -10,7 +10,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/deepbag17_5_train'
+        default='/mnt/hdd02/crownd_counting_results/bag33_res50_5_train2'
     )
     parser.add_argument(
         '--ST_part',
@@ -26,7 +26,7 @@ def opt_args():
     )
     parser.add_argument(
         '--model_path',
-        default='/mnt/hdd02/crownd_counting_results/deepbag33_4_train2/saved_model/save_100.pth',
+        default='/mnt/hdd02/crownd_counting_results/train/bag_5_train/saved_model/save_100.pth',
         type=str,
         help='saved model path'
     )
@@ -38,7 +38,7 @@ def opt_args():
     )
     parser.add_argument(
         '--bag_rf_size',
-        default=17,
+        default=33,
         type=int,
         help='if you use BagNet_base50, you can choise receptive fields size(33, 17 or 9)'
     )

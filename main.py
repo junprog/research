@@ -91,13 +91,16 @@ def main():
                                     )
 
     ### モデル生成 ###
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
     model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model, bag_rf_size=opts.bag_rf_size)
-    model.cuda()
+
     if opts.phase == 'train':
         model.feature_extracter = nn.DataParallel(model.feature_extracter)
-        model.down_channels = nn.DataParallel(model.down_channels)
-        model.output_layer = nn.DataParallel(model.output_layer)
+
+    model.to(device)
+    print(model)
     
     ### パラメータ代入 ###
     if opts.load_weight:
@@ -120,11 +123,10 @@ def main():
 
         model.load_state_dict(new_check_points)
 
-    print(model)
-    summary(model, (3,448,448))
+    #summary(model, (3,448,448))
 
     ## 損失関数,オプティマイザ ##
-    criterion = nn.MSELoss(reduction='mean').cuda()
+    criterion = nn.MSELoss(reduction='mean').to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=opts.lr, weight_decay=opts.weight_decay)
     scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[20, 40, 60, 80], gamma=0.1)
 
@@ -137,8 +139,8 @@ def main():
         val_logger = Logger(os.path.join(opts.results_path, 'results', 'val.log'), ['epoch', 'loss'])
 
         for epoch in range(opts.start_epoch, opts.num_epochs+1):
-            train_epoch(epoch, train_loader, model, criterion, optimizer, train_logger, opts, scheduler=scheduler)
-            val_epoch(epoch, val_loader, model, criterion, val_logger, opts)
+            train_epoch(epoch, train_loader, model, criterion, optimizer, train_logger, device, opts, scheduler=scheduler)
+            val_epoch(epoch, val_loader, model, criterion, val_logger, device, opts)
 
     if opts.phase == 'test':
         os.mkdir(os.path.join(opts.results_path, 'results'))
@@ -146,7 +148,7 @@ def main():
 
         test_logger = Logger(os.path.join(opts.results_path, 'results', 'test.log'), ['MAE', 'RMSE'])
 
-        test(test_loader, model, test_logger, opts)
+        test(test_loader, model, test_logger, device, opts)
 
 
 if __name__ == '__main__':

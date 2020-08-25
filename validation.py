@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from utils import AverageMeter
 
-def val_epoch(epoch, data_loader, model, criterion, epoch_logger, opts):
+def val_epoch(epoch, data_loader, model, criterion, epoch_logger, device, opts):
 
     model.eval()
 
@@ -19,8 +19,8 @@ def val_epoch(epoch, data_loader, model, criterion, epoch_logger, opts):
     for i, (inputs, target, _) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
 
-        inputs = inputs.cuda()
-        target = target.cuda()
+        inputs = inputs.to(device)
+        target = target.to(device)
 
         outputs = model(inputs)
 

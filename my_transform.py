@@ -68,7 +68,6 @@ class BagNet_Target_Scale(object):
         self.scale_h = input_size/output_size_h
 
     def __call__(self, target):
-
         target = target.resize(size=(self.output_size_w, self.output_size_h), resample=Image.BICUBIC)
         target = np.asarray(target)
         target = target*(self.scale_h*self.scale_w)

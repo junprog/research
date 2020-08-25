@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from utils import AverageMeter
 
-def train_epoch(epoch, data_loader, model, criterion, optimizer, epoch_logger, opts, scheduler=None):
+def train_epoch(epoch, data_loader, model, criterion, optimizer, epoch_logger, device, opts, scheduler=None):
     if scheduler is not None:
         scheduler.step()
 
@@ -26,8 +26,8 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, epoch_logger, o
     for i, (inputs, target, _) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
 
-        inputs = inputs.cuda()
-        target = target.cuda()
+        inputs = inputs.to(device)
+        target = target.to(device)
 
         outputs = model(inputs)
 
