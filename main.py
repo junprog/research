@@ -12,13 +12,15 @@ from torchvision import datasets, transforms
 
 from options import opt_args
 
-from datasets.ShanghaiTech_B import ShanghaiTech_B 
+from datasets.ShanghaiTech_B import ShanghaiTech_B
+from datasets.ShanghaiTech_A import ShanghaiTech_A
 from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale, BagNet_Target_Scale
 from models import base_model, base_residual_model
 from training import train_epoch
 from validation import val_epoch
 from test import test
 from utils import Logger
+from create_json import create_json
 
 from torchsummary import summary
 
@@ -46,49 +48,96 @@ def main():
 
     normalize_method = transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
 
+    ### jsonファイル 作成 ###
+    create_json(opts)
+
     ### データセット,データローダー作成 ###
-    if opts.phase == 'train':
-        train_set = ShanghaiTech_B(opts,
-                                    opts.train_json,
-                                    scale_method=scale_method,
-                                    target_scale_method=target_scale_method,
-                                    crop_method=crop_method, 
-                                    gaussian_method=gaussian_method,
-                                    normalize_method=normalize_method)
+    if opts.dataset == 'ST_B':
+        if opts.phase == 'train':
+            train_set = ShanghaiTech_B(opts,
+                                        opts.train_json,
+                                        scale_method=scale_method,
+                                        target_scale_method=target_scale_method,
+                                        crop_method=crop_method, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
 
-        val_set = ShanghaiTech_B(opts,
-                                    opts.val_json,
-                                    scale_method=scale_method,
-                                    target_scale_method=target_scale_method,
-                                    crop_method=crop_method, 
-                                    gaussian_method=gaussian_method,
-                                    normalize_method=normalize_method)
+            val_set = ShanghaiTech_B(opts,
+                                        opts.val_json,
+                                        scale_method=scale_method,
+                                        target_scale_method=target_scale_method,
+                                        crop_method=crop_method, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
 
-        train_loader = torch.utils.data.DataLoader(train_set,   
-                                    shuffle=True,
-                                    num_workers=opts.num_workers,
-                                    batch_size=opts.batch_size
-                                    )
+            train_loader = torch.utils.data.DataLoader(train_set,   
+                                        shuffle=True,
+                                        num_workers=opts.num_workers,
+                                        batch_size=opts.batch_size
+                                        )
 
-        val_loader = torch.utils.data.DataLoader(val_set,   
-                                    shuffle=False,
-                                    num_workers=opts.num_workers,
-                                    batch_size=opts.batch_size
-                                    )
-    elif opts.phase == 'test':
-        test_set = ShanghaiTech_B(opts,
-                                    opts.test_json, 
-                                    scale_method=None,
-                                    target_scale_method=target_scale_method,
-                                    crop_method=None, 
-                                    gaussian_method=gaussian_method,
-                                    normalize_method=normalize_method)
-        
-        test_loader = torch.utils.data.DataLoader(test_set,
-                                    shuffle=False,
-                                    num_workers=opts.num_workers,
-                                    batch_size=1
-                                    )
+            val_loader = torch.utils.data.DataLoader(val_set,   
+                                        shuffle=False,
+                                        num_workers=opts.num_workers,
+                                        batch_size=opts.batch_size
+                                        )
+        elif opts.phase == 'test':
+            test_set = ShanghaiTech_B(opts,
+                                        opts.test_json,
+                                        scale_method=None,
+                                        target_scale_method=target_scale_method,
+                                        crop_method=None, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+            
+            test_loader = torch.utils.data.DataLoader(test_set,
+                                        shuffle=False,
+                                        num_workers=opts.num_workers,
+                                        batch_size=1
+                                        )
+    if opts.dataset == 'ST_A':
+        if opts.phase == 'train':
+            train_set = ShanghaiTech_A(opts,
+                                        opts.train_json,
+                                        scale_method=scale_method,
+                                        target_scale_method=target_scale_method,
+                                        crop_method=crop_method, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+
+            val_set = ShanghaiTech_A(opts,
+                                        opts.val_json,
+                                        scale_method=scale_method,
+                                        target_scale_method=target_scale_method,
+                                        crop_method=crop_method, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+
+            train_loader = torch.utils.data.DataLoader(train_set,   
+                                        shuffle=True,
+                                        num_workers=opts.num_workers,
+                                        batch_size=opts.batch_size
+                                        )
+
+            val_loader = torch.utils.data.DataLoader(val_set,   
+                                        shuffle=False,
+                                        num_workers=opts.num_workers,
+                                        batch_size=opts.batch_size
+                                        )
+        elif opts.phase == 'test':
+            test_set = ShanghaiTech_A(opts,
+                                        opts.test_json,
+                                        scale_method=None,
+                                        target_scale_method=target_scale_method,
+                                        crop_method=None, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+            
+            test_loader = torch.utils.data.DataLoader(test_set,
+                                        shuffle=False,
+                                        num_workers=opts.num_workers,
+                                        batch_size=1
+                                        )
 
     ### モデル生成 ###
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

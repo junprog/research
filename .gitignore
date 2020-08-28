@@ -8,7 +8,9 @@ __pycache__/
 
 torchsummary/
 pytorch-summary/
-json_file/
+ST_A/
+ST_B/
+UCF-QNRF/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
