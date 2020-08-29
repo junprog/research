@@ -28,6 +28,10 @@ def test(data_loader, model, logger, device, opts):
 
             outputs = model(inputs)
 
+            print(torch.max(outputs), torch.max(target))
+            print(torch.min(outputs), torch.min(target))
+            print(torch.sum(outputs), torch.sum(target), num)
+
             output_sum = torch.sum(outputs)
 
             MAE = torch.abs(torch.sub(output_sum, num.item())) 
