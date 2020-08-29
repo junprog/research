@@ -80,7 +80,11 @@ class ShanghaiTech_A(data.Dataset):
             if self.crop_transform is not None:
                 self.crop_transform.rc_randomize_parameters(image)
 
-            if self.model == 'BagNet' or 'BagNet_base50':
+            if self.model == 'BagNet':
+                self.target_scale_tansform.calc_scale_w(self.crop_size_w)
+                self.target_scale_tansform.calc_scale_h(self.crop_size_h)
+
+            if self.model == 'BagNet_base50':
                 self.target_scale_tansform.calc_scale_w(self.crop_size_w)
                 self.target_scale_tansform.calc_scale_h(self.crop_size_h)
 
@@ -103,7 +107,12 @@ class ShanghaiTech_A(data.Dataset):
             tensor_image = image_transforms(image)
 
         elif self.phase == 'test':
-            if self.model == 'BagNet' or 'BagNet_base50':
+            if self.model == 'BagNet':
+                w, h = image.size
+                self.target_scale_tansform.calc_scale_w(w)
+                self.target_scale_tansform.calc_scale_h(h)
+
+            if self.model == 'BagNet_base50':
                 w, h = image.size
                 self.target_scale_tansform.calc_scale_w(w)
                 self.target_scale_tansform.calc_scale_h(h)

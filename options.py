@@ -4,23 +4,23 @@ def opt_args():
     parser = argparse.ArgumentParser(description='Crowd counting base model')
     parser.add_argument(
         '--root_path',
-        default='/mnt/hdd02',
+        default='D:/Junya/Documents',
         type=str,
         help='existing Dataset Directry'
     )
     parser.add_argument(
         '--dataset',
-        default='ST_B',
+        default='UCF-QNRF',
         type=str,
         help='Datasets (ST_B, ST_A, UCF-QNRF)'
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/aaa'
+        default='D:/Junya/Documents/UCF_QNRF_results/vggtest'
     )
     parser.add_argument(
         '--load_weight',
-        default=True,
+        default=False,
         type=bool,
         help='when transfer learning'
     )
@@ -32,7 +32,7 @@ def opt_args():
     )
     parser.add_argument(
         '--model',
-        default='BagNet_base50',
+        default='VGG16',
         type=str,
         help='use model (ResNet, VGG16, BagNet, BagNet_base50)'
     )
@@ -44,7 +44,7 @@ def opt_args():
     )
     parser.add_argument(
         '--phase',
-        default='test',
+        default='train',
         type=str,
         help='Training phase : train, Test phase : test',
     )
@@ -104,7 +104,7 @@ def opt_args():
     )
     parser.add_argument(
         '--down_scale_num',
-        default=5,
+        default=3,
         type=int,
         help='Number of Downsampling (e.g. want to use feature maps of Block2 in ResNet: 3)'
     )
@@ -116,7 +116,7 @@ def opt_args():
     )
     parser.add_argument(
         '--batch_size',
-        default=2,
+        default=16,
         type=int,
         help='Batch Size'
     )

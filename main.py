@@ -14,6 +14,7 @@ from options import opt_args
 
 from datasets.ShanghaiTech_B import ShanghaiTech_B
 from datasets.ShanghaiTech_A import ShanghaiTech_A
+from datasets.UCF_QNRF import UCF_QNRF
 from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale, BagNet_Target_Scale
 from models import base_model, base_residual_model
 from training import train_epoch
@@ -36,7 +37,9 @@ def main():
     #scale_method = Scale(opts.crop_scale)
     scale_method = None
 
-    if opts.model == 'BagNet' or 'BagNet_base50':
+    if opts.model == 'BagNet':
+        target_scale_method = BagNet_Target_Scale(opts.down_scale_num, opts.bag_rf_size)
+    elif opts.model == 'BagNet_base50':
         target_scale_method = BagNet_Target_Scale(opts.down_scale_num, opts.bag_rf_size)
     else:   
         target_scale_method = Target_Scale(opts.down_scale_num)
@@ -126,6 +129,49 @@ def main():
                                         )
         elif opts.phase == 'test':
             test_set = ShanghaiTech_A(opts,
+                                        opts.test_json,
+                                        scale_method=None,
+                                        target_scale_method=target_scale_method,
+                                        crop_method=None, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+            
+            test_loader = torch.utils.data.DataLoader(test_set,
+                                        shuffle=False,
+                                        num_workers=opts.num_workers,
+                                        batch_size=1
+                                        )
+    if opts.dataset == 'UCF-QNRF':
+        if opts.phase == 'train':
+            train_set = UCF_QNRF(opts,
+                                        opts.train_json,
+                                        scale_method=scale_method,
+                                        target_scale_method=target_scale_method,
+                                        crop_method=crop_method, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+
+            val_set = UCF_QNRF(opts,
+                                        opts.val_json,
+                                        scale_method=scale_method,
+                                        target_scale_method=target_scale_method,
+                                        crop_method=crop_method, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+
+            train_loader = torch.utils.data.DataLoader(train_set,   
+                                        shuffle=True,
+                                        num_workers=opts.num_workers,
+                                        batch_size=opts.batch_size
+                                        )
+
+            val_loader = torch.utils.data.DataLoader(val_set,   
+                                        shuffle=False,
+                                        num_workers=opts.num_workers,
+                                        batch_size=opts.batch_size
+                                        )
+        elif opts.phase == 'test':
+            test_set = UCF_QNRF(opts,
                                         opts.test_json,
                                         scale_method=None,
                                         target_scale_method=target_scale_method,
