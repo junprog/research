@@ -24,6 +24,7 @@ class Scale(object):
     
         return image.resize(crop_size)
 
+"""
 class Target_Scale(object):
     def __init__(self, down_scale_num):
         self.down_scale_num = down_scale_num
@@ -34,25 +35,38 @@ class Target_Scale(object):
         target = target*((2**self.down_scale_num)**2)
 
         return Image.fromarray(target)
+"""
 
-### BagNetの特殊な出力マップサイズに対応した Target Scaleクラス ###
-class BagNet_Target_Scale(object):
-    def __init__(self, down_scale_num, bag_rf_size):
-        if bag_rf_size == 33:
-            self.bag_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1]}
-        elif bag_rf_size == 17:
-            self.bag_dict = {'kernel':[3,3,3,3,1],'stride':[1,2,2,2,1]}
-        elif bag_rf_size == 9:
-            self.bag_dict = {'kernel':[3,3,3,1,1],'stride':[1,2,2,2,1]}
+class Target_Scale(object):
+    def __init__(self, opts): #, down_scale_num, bag_rf_size):
+        if opts.model == 'VGG16':
+            self.downfacter_dict = {'kernel':[2,2,2,2],'stride':[2,2,2,2],'padding':[0,0,0,0]} ## VGG16はMax Poolのみ
+        elif opts.model == 'ResNet':
+            self.downfacter_dict = {'kernel':[7,3,3,3],'stride':[2,2,2,2],'padding':[3,1,1,1]} ## conv1, Maxpool, b2conv1, b3conv1
+        elif opts.model == 'BagNet':
+            if opts.bag_rf_size == 33:
+                self.downfacter_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
+            elif opts.bag_rf_size == 17:
+                self.downfacter_dict = {'kernel':[3,3,3,3,1],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
+            elif opts.bag_rf_size == 9:
+                self.downfacter_dict = {'kernel':[3,3,3,1,1],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
 
-        self.down_scale_num = down_scale_num
+        elif opts.model == 'BagNet_base50':
+            if opts.bag_rf_size == 33:
+                self.downfacter_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
+            elif opts.bag_rf_size == 17:
+                self.downfacter_dict = {'kernel':[3,3,3,3,1],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
+            elif opts.bag_rf_size == 9:
+                self.downfacter_dict = {'kernel':[3,3,3,1,1],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
+
+        self.down_scale_num = opts.down_scale_num
 
     def calc_scale_w(self, input_size):
         output_size_w = input_size
 
         for i in range(0, self.down_scale_num):
             if i < self.down_scale_num:
-                output_size_w = math.floor(((output_size_w - self.bag_dict['kernel'][i]) / self.bag_dict['stride'][i]) + 1)
+                output_size_w = math.floor(((output_size_w - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
 
         self.output_size_w = output_size_w
         self.scale_w = input_size/output_size_w
@@ -62,7 +76,7 @@ class BagNet_Target_Scale(object):
 
         for i in range(0, self.down_scale_num):
             if i < self.down_scale_num:
-                output_size_h = math.floor(((output_size_h - self.bag_dict['kernel'][i]) / self.bag_dict['stride'][i]) + 1)
+                output_size_h = math.floor(((output_size_h - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
 
         self.output_size_h = output_size_h
         self.scale_h = input_size/output_size_h

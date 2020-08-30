@@ -15,7 +15,7 @@ from options import opt_args
 from datasets.ShanghaiTech_B import ShanghaiTech_B
 from datasets.ShanghaiTech_A import ShanghaiTech_A
 from datasets.UCF_QNRF import UCF_QNRF
-from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale, BagNet_Target_Scale
+from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale
 from models import base_model, base_residual_model
 from training import train_epoch
 from validation import val_epoch
@@ -37,12 +37,7 @@ def main():
     #scale_method = Scale(opts.crop_scale)
     scale_method = None
 
-    if opts.model == 'BagNet':
-        target_scale_method = BagNet_Target_Scale(opts.down_scale_num, opts.bag_rf_size)
-    elif opts.model == 'BagNet_base50':
-        target_scale_method = BagNet_Target_Scale(opts.down_scale_num, opts.bag_rf_size)
-    else:   
-        target_scale_method = Target_Scale(opts.down_scale_num)
+    target_scale_method = Target_Scale(opts)
 
     #crop_method = Corner_Center_Crop(opts.crop_size_h, opts.crop_size_w, opts.crop_position)
     crop_method = Random_Crop(opts.crop_size_h, opts.crop_size_w)
