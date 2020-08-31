@@ -67,6 +67,12 @@ def opt_args():
         help='json file name of test data'
     )
     parser.add_argument(
+        '--val_ratio',
+        default=4,
+        type=int,
+        help='ratio of num of validation datas'
+    )
+    parser.add_argument(
         '--gaussian_std',
         default=15,
         type=int,
