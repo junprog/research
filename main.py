@@ -181,7 +181,10 @@ def main():
                                         )
 
     ### モデル生成 ###
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if opts.use_gpu:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
 
     #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
     model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model, bag_rf_size=opts.bag_rf_size)

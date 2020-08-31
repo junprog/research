@@ -16,23 +16,31 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='D:/Junya/Documents/UCF_QNRF_results/vggtest'
+        default='D:/Junya/Documents/UCF_QNRF_results/bagtest3',
+        type=str,
+        help='results dir (if it was existing same dir, main.py can not run)'
+    )
+    parser.add_argument(
+        '--use_gpu',
+        default=False,
+        type=bool,
+        help='using GPU : true, using CPU : false'
     )
     parser.add_argument(
         '--load_weight',
-        default=False,
+        default=True,
         type=bool,
         help='when transfer learning'
     )
     parser.add_argument(
         '--model_path',
-        default='/mnt/hdd02/crownd_counting_results/bag33_res50_5_train2/saved_model/save_100.pth',
+        default='D:/Junya/Documents/ShanghaiTech_results/deepbag33_5_save_100.pth',
         type=str,
         help='saved model path'
     )
     parser.add_argument(
         '--model',
-        default='VGG16',
+        default='BagNet_base50',
         type=str,
         help='use model (ResNet, VGG16, BagNet, BagNet_base50)'
     )
@@ -44,7 +52,7 @@ def opt_args():
     )
     parser.add_argument(
         '--phase',
-        default='train',
+        default='test',
         type=str,
         help='Training phase : train, Test phase : test',
     )
@@ -110,7 +118,7 @@ def opt_args():
     )
     parser.add_argument(
         '--down_scale_num',
-        default=3,
+        default=5,
         type=int,
         help='Number of Downsampling (e.g. want to use feature maps of Block2 in ResNet: 3)'
     )

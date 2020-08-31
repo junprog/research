@@ -22,7 +22,7 @@ def test(data_loader, model, logger, device, opts):
         for i, (inputs, target, num) in enumerate(data_loader):
             data_time.update(time.time() - end_time)
 
-            inputs = inputs.to(device)
+            #inputs = inputs.to(device)
             #num = torch.tensor(num, dtype=torch.float32)
             #num = num.cuda()
 
@@ -53,15 +53,15 @@ def test(data_loader, model, logger, device, opts):
             )
             
             if i % 10 == 0:
-                numpy_in_1 = inputs[0,:,:,:].to('cpu').detach().numpy().copy()
+                numpy_in_1 = inputs[0,:,:,:].to('cpu').clone().numpy().copy()
                 numpy_in_1 = numpy_in_1.transpose(1,2,0)
                 mean = np.array([0.485, 0.456, 0.406])
                 std = np.array([0.229, 0.224, 0.225])
                 numpy_in_1 = numpy_in_1*std+mean
 
-                numpy_out = outputs[:,:,:,:].to('cpu').detach().numpy().copy().squeeze()
+                numpy_out = outputs[:,:,:,:].to('cpu').clone().numpy().copy().squeeze()
                 #numpy_target = target[:,:,:,:].to('cpu').detach().numpy().copy().squeeze()
-                numpy_target = target[:,:,:,:].detach().numpy().copy().squeeze()
+                numpy_target = target[:,:,:,:].clone().numpy().copy().squeeze()
 
 
                 fig = plt.figure()
@@ -83,6 +83,8 @@ def test(data_loader, model, logger, device, opts):
                 plt.tight_layout()
                 plt.savefig(os.path.join(opts.results_path, 'images', 'shanghaitech_partB_test_{}.png'.format(i)))
                 plt.close(fig)
+
+            del inputs, target, output_sum 
     
     logger.log({
         'MAE': MAE_losses.avg,
