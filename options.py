@@ -4,7 +4,7 @@ def opt_args():
     parser = argparse.ArgumentParser(description='Crowd counting base model')
     parser.add_argument(
         '--root_path',
-        default='D:/Junya/Documents',
+        default='/mnt/hdd02',
         type=str,
         help='existing Dataset Directry'
     )
@@ -16,7 +16,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='D:/Junya/Documents/UCF_QNRF_results/bagtest3',
+        default='/mnt/hdd02/crownd_counting_results/UCF-QNRF_bag33_res50_5_cpu_test_pre-train_ST_B',
         type=str,
         help='results dir (if it was existing same dir, main.py can not run)'
     )
@@ -34,7 +34,7 @@ def opt_args():
     )
     parser.add_argument(
         '--model_path',
-        default='D:/Junya/Documents/ShanghaiTech_results/deepbag33_5_save_100.pth',
+        default='/mnt/hdd02/crownd_counting_results/bag33_res50_5_train2/saved_model/save_100.pth',
         type=str,
         help='saved model path'
     )
@@ -70,7 +70,7 @@ def opt_args():
     )
     parser.add_argument(
         '--test_json',
-        default='test.json',
+        default='test_only1.json',
         type=str,
         help='json file name of test data'
     )

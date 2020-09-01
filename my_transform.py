@@ -24,19 +24,6 @@ class Scale(object):
     
         return image.resize(crop_size)
 
-"""
-class Target_Scale(object):
-    def __init__(self, down_scale_num):
-        self.down_scale_num = down_scale_num
-
-    def __call__(self, target):
-        target = target.resize(size=(target.size[0]//(2**self.down_scale_num), target.size[1]//(2**self.down_scale_num)), resample=Image.BICUBIC)
-        target = np.asarray(target)
-        target = target*((2**self.down_scale_num)**2)
-
-        return Image.fromarray(target)
-"""
-
 class Target_Scale(object):
     def __init__(self, opts): #, down_scale_num, bag_rf_size):
         if opts.model == 'VGG16':

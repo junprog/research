@@ -78,23 +78,24 @@ class UCF_QNRF(data.Dataset):
         assert st_size >= self.crop_size_h or st_size >= self.crop_size_w
 
         if self.phase == 'train':
+            
             if self.crop_transform is not None:
                 self.crop_transform.rc_randomize_parameters(image)
                 
             self.target_scale_tansform.calc_scale_w(self.crop_size_w)
             self.target_scale_tansform.calc_scale_h(self.crop_size_h)
 
+            image_transforms = transforms.Compose([
+                self.crop_transform,
+                transforms.ToTensor(),
+                self.normalize_transform
+            ])
+
             target_transforms = transforms.Compose([
                 self.gaussian_transform,
                 self.crop_transform,
                 self.target_scale_tansform,
                 transforms.ToTensor()
-            ])
-
-            image_transforms = transforms.Compose([
-                self.crop_transform,
-                transforms.ToTensor(),
-                self.normalize_transform
             ])
 
             num = len(target)

@@ -22,7 +22,7 @@ def test(data_loader, model, logger, device, opts):
         for i, (inputs, target, num) in enumerate(data_loader):
             data_time.update(time.time() - end_time)
 
-            #inputs = inputs.to(device)
+            inputs = inputs.to(device)
             #num = torch.tensor(num, dtype=torch.float32)
             #num = num.cuda()
 
@@ -84,7 +84,7 @@ def test(data_loader, model, logger, device, opts):
                 plt.savefig(os.path.join(opts.results_path, 'images', 'shanghaitech_partB_test_{}.png'.format(i)))
                 plt.close(fig)
 
-            del inputs, target, output_sum 
+            #del inputs, target
     
     logger.log({
         'MAE': MAE_losses.avg,

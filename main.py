@@ -177,7 +177,8 @@ def main():
             test_loader = torch.utils.data.DataLoader(test_set,
                                         shuffle=False,
                                         num_workers=opts.num_workers,
-                                        batch_size=1
+                                        batch_size=1,
+                                        pin_memory=False
                                         )
 
     ### モデル生成 ###
