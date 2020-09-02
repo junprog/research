@@ -15,7 +15,7 @@ from options import opt_args
 from datasets.ShanghaiTech_B import ShanghaiTech_B
 from datasets.ShanghaiTech_A import ShanghaiTech_A
 from datasets.UCF_QNRF import UCF_QNRF
-from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale
+from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale, My_Padding
 from models import base_model, base_residual_model
 from training import train_epoch
 from validation import val_epoch
@@ -39,8 +39,11 @@ def main():
 
     target_scale_method = Target_Scale(opts)
 
+    padding_method = My_Padding(opts.crop_size_h, opts.crop_size_w)
+
     #crop_method = Corner_Center_Crop(opts.crop_size_h, opts.crop_size_w, opts.crop_position)
     crop_method = Random_Crop(opts.crop_size_h, opts.crop_size_w)
+    #crop_method = transforms.RandomCrop((opts.crop_size_h, opts.crop_size_w), pad_if_needed=True)
 
     gaussian_method = Gaussian_Filtering(opts.gaussian_std)
 
@@ -99,6 +102,7 @@ def main():
                                         opts.train_json,
                                         scale_method=scale_method,
                                         target_scale_method=target_scale_method,
+                                        padding_method=padding_method,
                                         crop_method=crop_method, 
                                         gaussian_method=gaussian_method,
                                         normalize_method=normalize_method)
@@ -107,6 +111,7 @@ def main():
                                         opts.val_json,
                                         scale_method=scale_method,
                                         target_scale_method=target_scale_method,
+                                        padding_method=padding_method,
                                         crop_method=crop_method, 
                                         gaussian_method=gaussian_method,
                                         normalize_method=normalize_method)
@@ -127,6 +132,7 @@ def main():
                                         opts.test_json,
                                         scale_method=None,
                                         target_scale_method=target_scale_method,
+                                        padding_method=None,      
                                         crop_method=None, 
                                         gaussian_method=gaussian_method,
                                         normalize_method=normalize_method)
@@ -142,6 +148,7 @@ def main():
                                         opts.train_json,
                                         scale_method=scale_method,
                                         target_scale_method=target_scale_method,
+                                        padding_method=padding_method,
                                         crop_method=crop_method, 
                                         gaussian_method=gaussian_method,
                                         normalize_method=normalize_method)
@@ -150,6 +157,7 @@ def main():
                                         opts.val_json,
                                         scale_method=scale_method,
                                         target_scale_method=target_scale_method,
+                                        padding_method=padding_method,
                                         crop_method=crop_method, 
                                         gaussian_method=gaussian_method,
                                         normalize_method=normalize_method)
@@ -170,6 +178,7 @@ def main():
                                         opts.test_json,
                                         scale_method=None,
                                         target_scale_method=target_scale_method,
+                                        padding_method=None,                                        
                                         crop_method=None, 
                                         gaussian_method=gaussian_method,
                                         normalize_method=normalize_method)

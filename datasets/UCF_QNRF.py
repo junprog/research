@@ -43,6 +43,7 @@ class UCF_QNRF(data.Dataset):
                  json_file_name, 
                  scale_method=None,
                  target_scale_method=None,
+                 padding_method=None,
                  crop_method=None, 
                  gaussian_method=None,
                  normalize_method=None):
@@ -56,6 +57,7 @@ class UCF_QNRF(data.Dataset):
 
         self.scale_transform = scale_method
         self.target_scale_tansform = target_scale_method
+        self.padding_transform = padding_method
         self.crop_transform = crop_method
         self.gaussian_transform = gaussian_method
         self.normalize_transform = normalize_method
@@ -73,17 +75,24 @@ class UCF_QNRF(data.Dataset):
         image = self.image_loader(self.image_path_list[index])
         target = self.target_loader(self.image_path_list[index])
 
-        wd, ht = image.size
-        st_size = min(wd, ht)
-        assert st_size >= self.crop_size_h or st_size >= self.crop_size_w
+        self.target_scale_tansform.calc_scale_w(self.crop_size_w)
+        self.target_scale_tansform.calc_scale_h(self.crop_size_h)
+
+        if image.size[0] <= self.crop_size_w:
+            self.target_scale_tansform.calc_only_scale_w(image.size[0])
+        if image.size[1] <= self.crop_size_h:
+            self.target_scale_tansform.calc_only_scale_h(image.size[1])
 
         if self.phase == 'train':
-            
-            if self.crop_transform is not None:
+            num = len(target)
+            target = self.gt_mapping(image, target)
+            target = self.gaussian_transform(target)        
+
+            image = self.padding_transform(image, True)
+            target = self.padding_transform(target, False)
+
+            if self.crop_transform.__class__.__name__ is 'Random_Crop': ##自作 Rondom_Crop使用時
                 self.crop_transform.rc_randomize_parameters(image)
-                
-            self.target_scale_tansform.calc_scale_w(self.crop_size_w)
-            self.target_scale_tansform.calc_scale_h(self.crop_size_h)
 
             image_transforms = transforms.Compose([
                 self.crop_transform,
@@ -92,16 +101,13 @@ class UCF_QNRF(data.Dataset):
             ])
 
             target_transforms = transforms.Compose([
-                self.gaussian_transform,
                 self.crop_transform,
                 self.target_scale_tansform,
                 transforms.ToTensor()
             ])
 
-            num = len(target)
-            target = self.gt_mapping(image, target)
-            tensor_target = target_transforms(target)
             tensor_image = image_transforms(image)
+            tensor_target = target_transforms(target)
 
         elif self.phase == 'test':
             w, h = image.size
@@ -125,4 +131,3 @@ class UCF_QNRF(data.Dataset):
             tensor_image = image_transforms(image)
 
         return tensor_image, tensor_target, num
-    

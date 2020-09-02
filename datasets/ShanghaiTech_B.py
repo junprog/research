@@ -74,7 +74,7 @@ class ShanghaiTech_B(data.Dataset):
         target = self.target_loader(self.image_path_list[index])
 
         if self.phase == 'train':
-            if self.crop_transform is not None:
+            if self.crop_transform.__class__.__name__ is 'Random_Crop':
                 self.crop_transform.rc_randomize_parameters(image)
                 
             self.target_scale_tansform.calc_scale_w(self.crop_size_w)

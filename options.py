@@ -10,25 +10,25 @@ def opt_args():
     )
     parser.add_argument(
         '--dataset',
-        default='UCF-QNRF',
+        default='ST_A',
         type=str,
         help='Datasets (ST_B, ST_A, UCF-QNRF)'
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/UCF-QNRF_bag33_res50_5_cpu_test_pre-train_ST_B',
+        default='/mnt/hdd02/crownd_counting_results/ST_A_bag33_res18_5_train',
         type=str,
         help='results dir (if it was existing same dir, main.py can not run)'
     )
     parser.add_argument(
         '--use_gpu',
-        default=False,
+        default=True,
         type=bool,
         help='using GPU : true, using CPU : false'
     )
     parser.add_argument(
         '--load_weight',
-        default=True,
+        default=False,
         type=bool,
         help='when transfer learning'
     )
@@ -40,9 +40,9 @@ def opt_args():
     )
     parser.add_argument(
         '--model',
-        default='BagNet_base50',
+        default='BagNet',
         type=str,
-        help='use model (ResNet, VGG16, BagNet, BagNet_base50)'
+        help='use model (ResNet, VGG16, BagNet_base18, BagNet_base50)'
     )
     parser.add_argument(
         '--bag_rf_size',
@@ -52,7 +52,7 @@ def opt_args():
     )
     parser.add_argument(
         '--phase',
-        default='test',
+        default='train',
         type=str,
         help='Training phase : train, Test phase : test',
     )

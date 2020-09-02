@@ -3,6 +3,7 @@ import math
 import random
 import numpy as np
 
+from torchvision.transforms import functional as F
 from scipy.ndimage.filters import gaussian_filter
 from PIL import Image, ImageOps
         
@@ -48,6 +49,7 @@ class Target_Scale(object):
 
         self.down_scale_num = opts.down_scale_num
 
+
     def calc_scale_w(self, input_size):
         output_size_w = input_size
 
@@ -55,7 +57,16 @@ class Target_Scale(object):
             if i < self.down_scale_num:
                 output_size_w = math.floor(((output_size_w - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
 
+        self.scale_w = input_size/output_size_w
         self.output_size_w = output_size_w
+
+    def calc_only_scale_w(self, input_size):
+        output_size_w = input_size
+
+        for i in range(0, self.down_scale_num):
+            if i < self.down_scale_num:
+                output_size_w = math.floor(((output_size_w - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
+
         self.scale_w = input_size/output_size_w
 
     def calc_scale_h(self, input_size):
@@ -66,6 +77,15 @@ class Target_Scale(object):
                 output_size_h = math.floor(((output_size_h - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
 
         self.output_size_h = output_size_h
+        self.scale_h = input_size/output_size_h
+
+    def calc_only_scale_h(self, input_size):
+        output_size_h = input_size
+
+        for i in range(0, self.down_scale_num):
+            if i < self.down_scale_num:
+                output_size_h = math.floor(((output_size_h - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
+        
         self.scale_h = input_size/output_size_h
 
     def __call__(self, target):
@@ -138,3 +158,27 @@ class Random_Crop(object):
 
     def rc_randomize_parameters(self, image):
         self.left_top = (random.randint(0,image.size[0]-self.crop_size_w), random.randint(0,image.size[1]-self.crop_size_h))
+
+class My_Padding(object): ### image : PIL → padding → PIL, target : PIL → np → padding → PIL
+    def __init__(self, crop_size_h, crop_size_w):
+        self.crop_size_w = crop_size_w
+        self.crop_size_h = crop_size_h
+
+    def __call__(self, image, flag):
+        if flag:
+            if image.size[0] < self.crop_size_w:
+                image = F.pad(image, (self.crop_size_w - image.size[0], 0))
+            if image.size[1] < self.crop_size_h:
+                image = F.pad(image, (0, self.crop_size_h - image.size[1]))
+
+            return image
+
+        else:
+            np_img = np.asarray(image)
+
+            if image.size[0] < self.crop_size_w:
+                np_img = np.pad(np_img, ((0,0),(self.crop_size_w - np_img.shape[1], self.crop_size_w - np_img.shape[1])), 'constant')
+            if image.size[1] < self.crop_size_h:
+                np_img = np.pad(np_img, ((self.crop_size_h - np_img.shape[0], self.crop_size_h - np_img.shape[0]),(0,0)), 'constant')
+
+            return Image.fromarray(np_img)
