@@ -164,7 +164,7 @@ class My_Padding(object): ### image : PIL → padding → PIL, target : PIL → 
         self.crop_size_w = crop_size_w
         self.crop_size_h = crop_size_h
 
-    def __call__(self, image, flag):
+    def __call__(self, image, flag): ### image : flag = True, target : flag = False
         if flag:
             if image.size[0] < self.crop_size_w:
                 image = F.pad(image, (self.crop_size_w - image.size[0], 0))
