@@ -81,7 +81,8 @@ def test(data_loader, model, logger, device, opts):
                 a_3.set_title('Prediction')
 
                 plt.tight_layout()
-                plt.savefig(os.path.join(opts.results_path, 'images', 'shanghaitech_partB_test_{}.png'.format(i)))
+                output_img_name = opts.dataset + '_test_{}.png'.format(epoch)
+                plt.savefig(os.path.join(opts.results_path, 'images', output_img_name))
                 plt.close(fig)
 
             #del inputs, target

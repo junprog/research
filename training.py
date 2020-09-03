@@ -87,7 +87,8 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, epoch_logger, d
                 b_2.imshow(numpy_target[1], cmap='jet')
                 b_3.imshow(numpy_out[1], cmap='jet')
 
-                plt.savefig(os.path.join(opts.results_path, 'images', 'shanghaitech_partB_tr_fromMSE_{}.png'.format(epoch)))
+                output_img_name = opts.dataset + '_tr_{}.png'.format(epoch)
+                plt.savefig(os.path.join(opts.results_path, 'images', output_img_name))
                 plt.close(fig)
             
             else: ### batch size >= 4
@@ -144,8 +145,9 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, epoch_logger, d
                 d_1.imshow(numpy_in_4)
                 d_2.imshow(numpy_target[3], cmap='jet')
                 d_3.imshow(numpy_out[3], cmap='jet')
-
-                plt.savefig(os.path.join(opts.results_path, 'images', 'shanghaitech_partB_tr_fromMSE_{}.png'.format(epoch)))
+                
+                output_img_name = opts.dataset + '_tr_{}.png'.format(epoch)
+                plt.savefig(os.path.join(opts.results_path, 'images', output_img_name))
                 plt.close(fig)
 
     epoch_logger.log({
