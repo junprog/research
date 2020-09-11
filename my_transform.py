@@ -31,7 +31,7 @@ class Target_Scale(object):
             self.downfacter_dict = {'kernel':[2,2,2,2],'stride':[2,2,2,2],'padding':[0,0,0,0]} ## VGG16はMax Poolのみ
         elif opts.model == 'ResNet':
             self.downfacter_dict = {'kernel':[7,3,3,3],'stride':[2,2,2,2],'padding':[3,1,1,1]} ## conv1, Maxpool, b2conv1, b3conv1
-        elif opts.model == 'BagNet':
+        elif opts.model == 'BagNet_base18':
             if opts.bag_rf_size == 33:
                 self.downfacter_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
             elif opts.bag_rf_size == 17:

@@ -40,7 +40,7 @@ def opt_args():
     )
     parser.add_argument(
         '--model',
-        default='BagNet',
+        default='BagNet_base18',
         type=str,
         help='use model (ResNet, VGG16, BagNet_base18, BagNet_base50)'
     )
@@ -70,7 +70,7 @@ def opt_args():
     )
     parser.add_argument(
         '--test_json',
-        default='test_only1.json',
+        default='test.json',
         type=str,
         help='json file name of test data'
     )

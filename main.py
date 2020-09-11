@@ -16,7 +16,7 @@ from datasets.ShanghaiTech_B import ShanghaiTech_B
 from datasets.ShanghaiTech_A import ShanghaiTech_A
 from datasets.UCF_QNRF import UCF_QNRF
 from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale, My_Padding
-from models import base_model, base_residual_model
+from create_model import MyModel
 from training import train_epoch
 from validation import val_epoch
 from test import test
@@ -197,7 +197,7 @@ def main():
         device = torch.device("cpu")
 
     #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
-    model = base_model.MyModel(down_scale_num=opts.down_scale_num, model=opts.model, bag_rf_size=opts.bag_rf_size)
+    model = MyModel(down_scale_num=opts.down_scale_num, model=opts.model, bag_rf_size=opts.bag_rf_size)
 
     if opts.phase == 'train':
         model.feature_extracter = nn.DataParallel(model.feature_extracter)
