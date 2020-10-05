@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from utils import AverageMeter
 
-def test(data_loader, model, logger, opts):
+def test(data_loader, model, logger, device, opts):
 
     model.eval()
 
@@ -18,19 +18,17 @@ def test(data_loader, model, logger, opts):
     data_time = AverageMeter()
 
     end_time = time.time()
-    with torch.no_grad():
-        for i, (inputs, target, num) in enumerate(data_loader):
-            data_time.update(time.time() - end_time)
 
-            inputs = inputs.cuda()
-            num = num.cuda()
-
+    for i, (inputs, target, num) in enumerate(data_loader):
+        data_time.update(time.time() - end_time)                 
+        inputs = inputs.to(device)
+        with torch.set_grad_enabled(False):
             outputs = model(inputs)
 
-            output_sum = torch.sum(outputs)
+            output_sum = torch.sum(outputs).cpu().item()
 
-            MAE = torch.abs(torch.sub(output_sum, num)) 
-            RMSE_tmp = torch.pow(torch.sub(output_sum, num),2)
+            MAE = torch.abs(torch.sub(output_sum, num.item())) 
+            RMSE_tmp = torch.pow(torch.sub(output_sum, num.item()),2)
 
             MAE_losses.update(MAE.cpu().item(), inputs.size(0))
             RMSE_losses.update(RMSE_tmp.cpu().item(), inputs.size(0))
@@ -52,15 +50,15 @@ def test(data_loader, model, logger, opts):
             )
             
             if i % 10 == 0:
-                numpy_in_1 = inputs[0,:,:,:].to('cpu').detach().numpy().copy()
+                numpy_in_1 = inputs[0,:,:,:].to('cpu').clone().numpy().copy()
                 numpy_in_1 = numpy_in_1.transpose(1,2,0)
                 mean = np.array([0.485, 0.456, 0.406])
                 std = np.array([0.229, 0.224, 0.225])
                 numpy_in_1 = numpy_in_1*std+mean
 
-                numpy_out = outputs[:,:,:,:].to('cpu').detach().numpy().copy().squeeze()
+                numpy_out = outputs[:,:,:,:].to('cpu').clone().numpy().copy().squeeze()
                 #numpy_target = target[:,:,:,:].to('cpu').detach().numpy().copy().squeeze()
-                numpy_target = target[:,:,:,:].detach().numpy().copy().squeeze()
+                numpy_target = target[:,:,:,:].clone().numpy().copy().squeeze()
 
 
                 fig = plt.figure()
@@ -76,12 +74,15 @@ def test(data_loader, model, logger, opts):
                 a_2.annotate('{}'.format(int(num)), xy=(10, y-10), fontsize=16, color='white')
                 a_2.set_title('Ground Truth')
                 a_3.imshow(numpy_out, cmap='jet')
-                a_3.annotate('{:.3f}'.format(output_sum.item()), xy=(10, y-10), fontsize=16, color='white')
+                a_3.annotate('{:.3f}'.format(output_sum), xy=(10, y-10), fontsize=16, color='white')
                 a_3.set_title('Prediction')
 
                 plt.tight_layout()
-                plt.savefig(os.path.join(opts.results_path, 'images', 'shanghaitech_partB_test_{}.png'.format(i)))
+                output_img_name = opts.dataset + '_test_{}.png'.format(i)
+                plt.savefig(os.path.join(opts.results_path, 'images', output_img_name))
                 plt.close(fig)
+
+            #del inputs, target
     
     logger.log({
         'MAE': MAE_losses.avg,

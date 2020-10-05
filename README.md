@@ -19,13 +19,7 @@
 * Scaling method
     * Scale (not recommended)
     * Target_Scale
-    * BagNet_Target_Scale
 
-## Creating jsonfile
-
-```bash
-$ python create_json.py 'dataset path(~/images)' 'phase(train or test)'
-```
 
 ## Training phase
 default datasets : ShanghaiTech_B

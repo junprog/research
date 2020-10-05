@@ -3,6 +3,7 @@ import math
 import random
 import numpy as np
 
+from torchvision.transforms import functional as F
 from scipy.ndimage.filters import gaussian_filter
 from PIL import Image, ImageOps
         
@@ -25,36 +26,47 @@ class Scale(object):
         return image.resize(crop_size)
 
 class Target_Scale(object):
-    def __init__(self, down_scale_num):
-        self.down_scale_num = down_scale_num
+    def __init__(self, opts): #, down_scale_num, bag_rf_size):
+        if opts.model == 'VGG16':
+            self.downfacter_dict = {'kernel':[2,2,2,2],'stride':[2,2,2,2],'padding':[0,0,0,0]} ## VGG16はMax Poolのみ
+        elif opts.model == 'ResNet':
+            self.downfacter_dict = {'kernel':[7,3,3,3],'stride':[2,2,2,2],'padding':[3,1,1,1]} ## conv1, Maxpool, b2conv1, b3conv1
+        elif opts.model == 'BagNet_base18':
+            if opts.bag_rf_size == 33:
+                self.downfacter_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
+            elif opts.bag_rf_size == 17:
+                self.downfacter_dict = {'kernel':[3,3,3,3,1],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
+            elif opts.bag_rf_size == 9:
+                self.downfacter_dict = {'kernel':[3,3,3,1,1],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
 
-    def __call__(self, target):
-        target = target.resize(size=(target.size[0]//(2**self.down_scale_num), target.size[1]//(2**self.down_scale_num)), resample=Image.BICUBIC)
-        target = np.asarray(target)
-        target = target*((2**self.down_scale_num)**2)
+        elif opts.model == 'BagNet_base50':
+            if opts.bag_rf_size == 33:
+                self.downfacter_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
+            elif opts.bag_rf_size == 17:
+                self.downfacter_dict = {'kernel':[3,3,3,3,1],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
+            elif opts.bag_rf_size == 9:
+                self.downfacter_dict = {'kernel':[3,3,3,1,1],'stride':[1,2,2,2,1],'padding':[0,0,0,0,0]}
 
-        return Image.fromarray(target)
+        self.down_scale_num = opts.down_scale_num
 
-### BagNetの特殊な出力マップサイズに対応した Target Scaleクラス ###
-class BagNet_Target_Scale(object):
-    def __init__(self, down_scale_num, bag_rf_size):
-        if bag_rf_size == 33:
-            self.bag_dict = {'kernel':[3,3,3,3,3],'stride':[1,2,2,2,1]}
-        elif bag_rf_size == 17:
-            self.bag_dict = {'kernel':[3,3,3,3,1],'stride':[1,2,2,2,1]}
-        elif bag_rf_size == 9:
-            self.bag_dict = {'kernel':[3,3,3,1,1],'stride':[1,2,2,2,1]}
-
-        self.down_scale_num = down_scale_num
 
     def calc_scale_w(self, input_size):
         output_size_w = input_size
 
         for i in range(0, self.down_scale_num):
             if i < self.down_scale_num:
-                output_size_w = math.floor(((output_size_w - self.bag_dict['kernel'][i]) / self.bag_dict['stride'][i]) + 1)
+                output_size_w = math.floor(((output_size_w - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
 
+        self.scale_w = input_size/output_size_w
         self.output_size_w = output_size_w
+
+    def calc_only_scale_w(self, input_size):
+        output_size_w = input_size
+
+        for i in range(0, self.down_scale_num):
+            if i < self.down_scale_num:
+                output_size_w = math.floor(((output_size_w - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
+
         self.scale_w = input_size/output_size_w
 
     def calc_scale_h(self, input_size):
@@ -62,13 +74,21 @@ class BagNet_Target_Scale(object):
 
         for i in range(0, self.down_scale_num):
             if i < self.down_scale_num:
-                output_size_h = math.floor(((output_size_h - self.bag_dict['kernel'][i]) / self.bag_dict['stride'][i]) + 1)
+                output_size_h = math.floor(((output_size_h - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
 
         self.output_size_h = output_size_h
         self.scale_h = input_size/output_size_h
 
-    def __call__(self, target):
+    def calc_only_scale_h(self, input_size):
+        output_size_h = input_size
 
+        for i in range(0, self.down_scale_num):
+            if i < self.down_scale_num:
+                output_size_h = math.floor(((output_size_h - self.downfacter_dict['kernel'][i] + 2*self.downfacter_dict['padding'][i]) / self.downfacter_dict['stride'][i]) + 1)
+        
+        self.scale_h = input_size/output_size_h
+
+    def __call__(self, target):
         target = target.resize(size=(self.output_size_w, self.output_size_h), resample=Image.BICUBIC)
         target = np.asarray(target)
         target = target*(self.scale_h*self.scale_w)
@@ -138,3 +158,27 @@ class Random_Crop(object):
 
     def rc_randomize_parameters(self, image):
         self.left_top = (random.randint(0,image.size[0]-self.crop_size_w), random.randint(0,image.size[1]-self.crop_size_h))
+
+class My_Padding(object): ### image : PIL → padding → PIL, target : PIL → np → padding → PIL
+    def __init__(self, crop_size_h, crop_size_w):
+        self.crop_size_w = crop_size_w
+        self.crop_size_h = crop_size_h
+
+    def __call__(self, image, flag): ### image : flag = True, target : flag = False
+        if flag:
+            if image.size[0] < self.crop_size_w:
+                image = F.pad(image, (self.crop_size_w - image.size[0], 0))
+            if image.size[1] < self.crop_size_h:
+                image = F.pad(image, (0, self.crop_size_h - image.size[1]))
+
+            return image
+
+        else:
+            np_img = np.asarray(image)
+
+            if image.size[0] < self.crop_size_w:
+                np_img = np.pad(np_img, ((0,0),(self.crop_size_w - np_img.shape[1], self.crop_size_w - np_img.shape[1])), 'constant')
+            if image.size[1] < self.crop_size_h:
+                np_img = np.pad(np_img, ((self.crop_size_h - np_img.shape[0], self.crop_size_h - np_img.shape[0]),(0,0)), 'constant')
+
+            return Image.fromarray(np_img)
