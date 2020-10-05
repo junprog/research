@@ -12,35 +12,33 @@ def opt_args():
         '--dataset',
         default='ST_A',
         type=str,
-        help='Datasets (ST_B, ST_A, UCF-QNRF)'
+        help='Datasets (ST_B, ST_A, UCF-QNRF, t_UCF-QNRF)'
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/ST_A_bag33_res18_5_train',
+        default='/mnt/hdd02/crownd_counting_results/ST_A_bag_33_res50_5_test_pre-train-UCF-QNRF',
         type=str,
         help='results dir (if it was existing same dir, main.py can not run)'
     )
     parser.add_argument(
-        '--use_gpu',
-        default=True,
-        type=bool,
+        '--not_use_gpu',
+        action='store_false',
         help='using GPU : true, using CPU : false'
     )
     parser.add_argument(
         '--load_weight',
-        default=False,
-        type=bool,
+        action='store_true',
         help='when transfer learning'
     )
     parser.add_argument(
         '--model_path',
-        default='/mnt/hdd02/crownd_counting_results/bag33_res50_5_train2/saved_model/save_100.pth',
+        default='/mnt/hdd02/crownd_counting_results/UCF-QNRF_bag33_res50_5_train/saved_model/save_100.pth',
         type=str,
         help='saved model path'
     )
     parser.add_argument(
         '--model',
-        default='BagNet_base18',
+        default='BagNet_base50',
         type=str,
         help='use model (ResNet, VGG16, BagNet_base18, BagNet_base50)'
     )
@@ -48,11 +46,11 @@ def opt_args():
         '--bag_rf_size',
         default=33,
         type=int,
-        help='if you use BagNet_base50, you can choise receptive fields size(33, 17 or 9)'
+        help='if you use BagNet, you can choise receptive fields size(33, 17 or 9)'
     )
     parser.add_argument(
         '--phase',
-        default='train',
+        default='test',
         type=str,
         help='Training phase : train, Test phase : test',
     )

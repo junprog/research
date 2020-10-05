@@ -12,6 +12,7 @@ json_file/
 ST_A/
 ST_B/
 UCF-QNRF/
+t_UCF-QNRF/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -151,7 +151,8 @@ def bagnet17(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """
     model = BagNet(BasicBlock, [2, 2, 2, 2], strides=strides, kernel3=[1,1,1,0], **kwargs)
     if pretrained:
-        model._initialize_params('mat_weight/bag17_base18_net.mat')
+        #model._initialize_params('mat_weight/bag17_base18_net.mat')
+        model._initialize_params('mat_weight/net-epoch-6.mat')
 
     return model
 

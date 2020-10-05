@@ -15,6 +15,7 @@ from options import opt_args
 from datasets.ShanghaiTech_B import ShanghaiTech_B
 from datasets.ShanghaiTech_A import ShanghaiTech_A
 from datasets.UCF_QNRF import UCF_QNRF
+from datasets.t_UCF_QNRF import t_UCF_QNRF
 from my_transform import Gaussian_Filtering, Scale, Corner_Center_Crop, Random_Crop, Target_Scale, My_Padding
 from create_model import MyModel
 from training import train_epoch
@@ -189,9 +190,56 @@ def main():
                                         batch_size=1,
                                         pin_memory=False
                                         )
+    if opts.dataset == 't_UCF-QNRF':
+        if opts.phase == 'train':
+            train_set = t_UCF_QNRF(opts,
+                                        opts.train_json,
+                                        scale_method=scale_method,
+                                        target_scale_method=target_scale_method,
+                                        padding_method=padding_method,
+                                        crop_method=crop_method, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+
+            val_set = t_UCF_QNRF(opts,
+                                        opts.val_json,
+                                        scale_method=scale_method,
+                                        target_scale_method=target_scale_method,
+                                        padding_method=padding_method,
+                                        crop_method=crop_method, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+
+            train_loader = torch.utils.data.DataLoader(train_set,   
+                                        shuffle=True,
+                                        num_workers=opts.num_workers,
+                                        batch_size=opts.batch_size
+                                        )
+
+            val_loader = torch.utils.data.DataLoader(val_set,   
+                                        shuffle=False,
+                                        num_workers=opts.num_workers,
+                                        batch_size=opts.batch_size
+                                        )
+        elif opts.phase == 'test':
+            test_set = t_UCF_QNRF(opts,
+                                        opts.test_json,
+                                        scale_method=None,
+                                        target_scale_method=target_scale_method,
+                                        padding_method=None,                                        
+                                        crop_method=None, 
+                                        gaussian_method=gaussian_method,
+                                        normalize_method=normalize_method)
+            
+            test_loader = torch.utils.data.DataLoader(test_set,
+                                        shuffle=False,
+                                        num_workers=opts.num_workers,
+                                        batch_size=1,
+                                        pin_memory=False
+                                        )
 
     ### モデル生成 ###
-    if opts.use_gpu:
+    if opts.not_use_gpu:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     else:
         device = torch.device("cpu")
@@ -226,7 +274,7 @@ def main():
 
         model.load_state_dict(new_check_points)
 
-    #summary(model, (3,448,448))
+    summary(model, (3,448,448))
 
     ## 損失関数,オプティマイザ ##
     criterion = nn.MSELoss(reduction='mean').to(device)

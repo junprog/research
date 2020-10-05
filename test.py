@@ -18,17 +18,14 @@ def test(data_loader, model, logger, device, opts):
     data_time = AverageMeter()
 
     end_time = time.time()
-    with torch.no_grad():
-        for i, (inputs, target, num) in enumerate(data_loader):
-            data_time.update(time.time() - end_time)
 
-            inputs = inputs.to(device)
-            #num = torch.tensor(num, dtype=torch.float32)
-            #num = num.cuda()
-
+    for i, (inputs, target, num) in enumerate(data_loader):
+        data_time.update(time.time() - end_time)                 
+        inputs = inputs.to(device)
+        with torch.set_grad_enabled(False):
             outputs = model(inputs)
 
-            output_sum = torch.sum(outputs)
+            output_sum = torch.sum(outputs).cpu().item()
 
             MAE = torch.abs(torch.sub(output_sum, num.item())) 
             RMSE_tmp = torch.pow(torch.sub(output_sum, num.item()),2)
@@ -77,7 +74,7 @@ def test(data_loader, model, logger, device, opts):
                 a_2.annotate('{}'.format(int(num)), xy=(10, y-10), fontsize=16, color='white')
                 a_2.set_title('Ground Truth')
                 a_3.imshow(numpy_out, cmap='jet')
-                a_3.annotate('{:.3f}'.format(output_sum.item()), xy=(10, y-10), fontsize=16, color='white')
+                a_3.annotate('{:.3f}'.format(output_sum), xy=(10, y-10), fontsize=16, color='white')
                 a_3.set_title('Prediction')
 
                 plt.tight_layout()
