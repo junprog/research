@@ -37,6 +37,11 @@ def opt_args():
         help='saved model path'
     )
     parser.add_argument(
+        '--scratch',
+        action='store_false',
+        help='if scratch training, use this option'
+    )
+    parser.add_argument(
         '--model',
         default='BagNet_base50',
         type=str,
@@ -122,7 +127,7 @@ def opt_args():
     )
     parser.add_argument(
         '--lr',
-        default=1e-5, #1e-3 ~ 1e-5
+        default=1e-4, #1e-3 ~ 1e-5
         type=float,
         help='Learning Rate'
     )

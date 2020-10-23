@@ -5,22 +5,22 @@ import torchvision.models as models
 from models import bagnet_res18, bagnet_res50
 
 class MyModel(nn.Module):
-    def __init__(self, down_scale_num=3, model='ResNet', bag_rf_size=33):
+    def __init__(self, down_scale_num=3, model='ResNet', bag_rf_size=33, scratch=True):
         super(MyModel,self).__init__()
 
         ## feature_extracter : ResNet, VGG, BagNetの最終fc層なくした事前学習モデル
         ## down_channels : channel数を削減する (regressiion)
         if model == 'ResNet':
-            self.feature_extracter = make_resnet18_feature_extracter(down_scale_num)
+            self.feature_extracter = make_resnet18_feature_extracter(down_scale_num, scratch)
             self.down_channels = make_resnet18_down_channels(down_scale_num)
         elif model == 'VGG16':
-            self.feature_extracter = make_vgg16_feature_extracter(down_scale_num)
+            self.feature_extracter = make_vgg16_feature_extracter(down_scale_num, scratch)
             self.down_channels = make_vgg16_down_channels(down_scale_num)
         elif model == 'BagNet_base18':
-            self.feature_extracter = make_bagnet_feature_extracter(down_scale_num, bag_rf_size)
+            self.feature_extracter = make_bagnet_feature_extracter(down_scale_num, bag_rf_size, scratch)
             self.down_channels = make_resnet18_down_channels(down_scale_num)
         elif model == 'BagNet_base50':
-            self.feature_extracter = make_bagnet_base50_feature_extracter(down_scale_num, bag_rf_size)
+            self.feature_extracter = make_bagnet_base50_feature_extracter(down_scale_num, bag_rf_size, scratch)
             self.down_channels = make_resnet50_down_channels(down_scale_num)
 
         self.output_layer = nn.Conv2d(64, 1, kernel_size=1)
@@ -32,8 +32,8 @@ class MyModel(nn.Module):
 
         return x
 
-def make_resnet18_feature_extracter(down_scale_num):
-    model = models.resnet18(pretrained=True)
+def make_resnet18_feature_extracter(down_scale_num, scratch):
+    model = models.resnet18(pretrained=scratch)
 
     layers = list(model.children())[:-2]
 
@@ -49,8 +49,8 @@ def make_resnet18_feature_extracter(down_scale_num):
 
     return extracter
 
-def make_vgg16_feature_extracter(down_scale_num):
-    model = models.vgg16(pretrained=True)
+def make_vgg16_feature_extracter(down_scale_num, scratch):
+    model = models.vgg16(pretrained=scratch)
     if down_scale_num == 3:
         layers = list(model.features.children())[:-8]
     elif down_scale_num == 4:
@@ -58,13 +58,13 @@ def make_vgg16_feature_extracter(down_scale_num):
 
     return nn.Sequential(*layers)
 
-def make_bagnet_feature_extracter(down_scale_num, bag_rf_size):
+def make_bagnet_feature_extracter(down_scale_num, bag_rf_size, scratch):
     if bag_rf_size == 33:
-        model = bagnet_res18.bagnet33(pretrained=True)
+        model = bagnet_res18.bagnet33(pretrained=scratch)
     elif bag_rf_size == 17:
-        model = bagnet_res18.bagnet17(pretrained=True)
+        model = bagnet_res18.bagnet17(pretrained=scratch)
     elif bag_rf_size == 9:
-        model = bagnet_res18.bagnet9(pretrained=True)
+        model = bagnet_res18.bagnet9(pretrained=scratch)
 
     layers = list(model.children())[:-2]
 
@@ -79,13 +79,13 @@ def make_bagnet_feature_extracter(down_scale_num, bag_rf_size):
 
     return extracter
 
-def make_bagnet_base50_feature_extracter(down_scale_num, bag_rf_size):
+def make_bagnet_base50_feature_extracter(down_scale_num, bag_rf_size, scratch):
     if bag_rf_size == 33:
-        model = bagnet_res50.bagnet33(pretrained=True)
+        model = bagnet_res50.bagnet33(pretrained=scratch)
     elif bag_rf_size == 17:
-        model = bagnet_res50.bagnet17(pretrained=True)
+        model = bagnet_res50.bagnet17(pretrained=scratch)
     elif bag_rf_size == 9:
-        model = bagnet_res50.bagnet9(pretrained=True)
+        model = bagnet_res50.bagnet9(pretrained=scratch)
 
     layers = list(model.children())[:-2]
 

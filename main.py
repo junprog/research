@@ -245,10 +245,10 @@ def main():
         device = torch.device("cpu")
 
     #model = base_residual_model.create_mymodel(down_scale_num=opts.down_scale_num)
-    model = MyModel(down_scale_num=opts.down_scale_num, model=opts.model, bag_rf_size=opts.bag_rf_size)
+    model = MyModel(down_scale_num=opts.down_scale_num, model=opts.model, bag_rf_size=opts.bag_rf_size, scratch=opts.scratch)
 
-    if opts.phase == 'train':
-        model.feature_extracter = nn.DataParallel(model.feature_extracter)
+    #if opts.phase == 'train':
+        # model.feature_extracter = nn.DataParallel(model.feature_extracter)
 
     model.to(device)
     print(model)
@@ -274,7 +274,7 @@ def main():
 
         model.load_state_dict(new_check_points)
 
-    summary(model, (3,448,448))
+    #summary(model, (3,448,448))
 
     ## 損失関数,オプティマイザ ##
     criterion = nn.MSELoss(reduction='mean').to(device)
