@@ -16,7 +16,7 @@ def opt_args():
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/ST_A_bag_33_res50_5_test_pre-train-UCF-QNRF',
+        default='/mnt/hdd02/crownd_counting_results/aaa',
         type=str,
         help='results dir (if it was existing same dir, main.py can not run)'
     )
