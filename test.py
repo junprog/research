@@ -19,12 +19,19 @@ def test(data_loader, model, logger, device, opts):
 
     end_time = time.time()
 
+    resu = []
+
     for i, (inputs, target, num) in enumerate(data_loader):
         data_time.update(time.time() - end_time)                 
         inputs = inputs.to(device)
-        with torch.set_grad_enabled(False):
+        with torch.no_grad():
             outputs = model(inputs)
 
+            temp_minu = num.item() - torch.sum(outputs).item()
+            print(temp_minu, num.item(), torch.sum(outputs).item())
+            resu.append(temp_minu)
+
+            """
             output_sum = torch.sum(outputs).cpu().item()
 
             MAE = torch.abs(torch.sub(output_sum, num.item())) 
@@ -48,7 +55,8 @@ def test(data_loader, model, logger, device, opts):
                     mae=MAE_losses,
                     rmse=RMSE_losses)
             )
-            
+            """
+            """
             if i % 10 == 0:
                 numpy_in_1 = inputs[0,:,:,:].to('cpu').clone().numpy().copy()
                 numpy_in_1 = numpy_in_1.transpose(1,2,0)
@@ -74,7 +82,7 @@ def test(data_loader, model, logger, device, opts):
                 a_2.annotate('{}'.format(int(num)), xy=(10, y-10), fontsize=16, color='white')
                 a_2.set_title('Ground Truth')
                 a_3.imshow(numpy_out, cmap='jet')
-                a_3.annotate('{:.3f}'.format(output_sum), xy=(10, y-10), fontsize=16, color='white')
+                a_3.annotate('{:.3f}'.format(torch.sum(outputs).item()), xy=(10, y-10), fontsize=16, color='white')
                 a_3.set_title('Prediction')
 
                 plt.tight_layout()
@@ -83,8 +91,17 @@ def test(data_loader, model, logger, device, opts):
                 plt.close(fig)
 
             #del inputs, target
-    
+            """
+
+    resu = np.array(resu)
+    mse = np.sqrt(np.mean(np.square(resu)))
+    mae = np.mean(np.abs(resu))
+    log_str = 'Final Test: mae {}, mse {}'.format(mae, mse)
+    print(log_str)
+
+"""
     logger.log({
         'MAE': MAE_losses.avg,
         'RMSE': math.sqrt(RMSE_losses.avg)
     })
+"""
