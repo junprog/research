@@ -52,10 +52,7 @@ class ShanghaiTech_B(data.Dataset):
         self.crop_size_w = opts.crop_size_w
         self.crop_size_h = opts.crop_size_h
 
-        if opts.phase == 'train':
-            self.json_path = os.path.join('json_file', json_file_name)
-        else:
-            self.json_path = os.path.join('json_file', json_file_name)
+        self.json_path = os.path.join(opts.dataset, json_file_name)
 
         self.scale_transform = scale_method
         self.target_scale_tansform = target_scale_method
@@ -77,12 +74,11 @@ class ShanghaiTech_B(data.Dataset):
         target = self.target_loader(self.image_path_list[index])
 
         if self.phase == 'train':
-            if self.crop_transform is not None:
+            if self.crop_transform.__class__.__name__ is 'Random_Crop':
                 self.crop_transform.rc_randomize_parameters(image)
-
-            if self.model == 'BagNet' or 'BagNet_base50':
-                self.target_scale_tansform.calc_scale_w(self.crop_size_w)
-                self.target_scale_tansform.calc_scale_h(self.crop_size_h)
+                
+            self.target_scale_tansform.calc_scale_w(self.crop_size_w)
+            self.target_scale_tansform.calc_scale_h(self.crop_size_h)
 
             target_transforms = transforms.Compose([
                 self.gaussian_transform,
@@ -103,10 +99,9 @@ class ShanghaiTech_B(data.Dataset):
             tensor_image = image_transforms(image)
 
         elif self.phase == 'test':
-            if self.model == 'BagNet' or 'BagNet_base50':
-                w, h = image.size
-                self.target_scale_tansform.calc_scale_w(w)
-                self.target_scale_tansform.calc_scale_h(h)
+            w, h = image.size
+            self.target_scale_tansform.calc_scale_w(w)
+            self.target_scale_tansform.calc_scale_h(h)
 
             target_transforms = transforms.Compose([
                 self.gaussian_transform,

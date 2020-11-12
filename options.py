@@ -4,29 +4,35 @@ def opt_args():
     parser = argparse.ArgumentParser(description='Crowd counting base model')
     parser.add_argument(
         '--root_path',
-        default='/mnt/hdd02/ShanghaiTech',
+        default='/mnt/hdd02',
         type=str,
-        help='Dataset Directry'
+        help='existing Dataset Directry'
+    )
+    parser.add_argument(
+        '--dataset',
+        default='ST_A',
+        type=str,
+        help='Datasets (ST_B, ST_A, UCF-QNRF, t_UCF-QNRF)'
     )
     parser.add_argument(
         '--results_path',
-        default='/mnt/hdd02/crownd_counting_results/deepbag17_5_train'
+        default='/mnt/hdd02/crownd_counting_results/aaa',
+        type=str,
+        help='results dir (if it was existing same dir, main.py can not run)'
     )
     parser.add_argument(
-        '--ST_part',
-        default='part_B',
-        type=str,
-        help='The part of ShanghaiTech Dataset'
+        '--not_use_gpu',
+        action='store_false',
+        help='using GPU : true, using CPU : false'
     )
     parser.add_argument(
         '--load_weight',
-        default=False,
-        type=bool,
+        action='store_true',
         help='when transfer learning'
     )
     parser.add_argument(
         '--model_path',
-        default='/mnt/hdd02/crownd_counting_results/deepbag33_4_train2/saved_model/save_100.pth',
+        default='/mnt/hdd02/crownd_counting_results/UCF-QNRF_bag33_res50_5_train/saved_model/save_100.pth',
         type=str,
         help='saved model path'
     )
@@ -34,17 +40,17 @@ def opt_args():
         '--model',
         default='BagNet_base50',
         type=str,
-        help='use model (ResNet, VGG16, BagNet, BagNet_base50)'
+        help='use model (ResNet, VGG16, BagNet_base18, BagNet_base50)'
     )
     parser.add_argument(
         '--bag_rf_size',
-        default=17,
+        default=33,
         type=int,
-        help='if you use BagNet_base50, you can choise receptive fields size(33, 17 or 9)'
+        help='if you use BagNet, you can choise receptive fields size(33, 17 or 9)'
     )
     parser.add_argument(
         '--phase',
-        default='train',
+        default='test',
         type=str,
         help='Training phase : train, Test phase : test',
     )
@@ -65,6 +71,12 @@ def opt_args():
         default='test.json',
         type=str,
         help='json file name of test data'
+    )
+    parser.add_argument(
+        '--val_ratio',
+        default=4,
+        type=int,
+        help='ratio of num of validation datas'
     )
     parser.add_argument(
         '--gaussian_std',
@@ -116,7 +128,7 @@ def opt_args():
     )
     parser.add_argument(
         '--batch_size',
-        default=2,
+        default=16,
         type=int,
         help='Batch Size'
     )
