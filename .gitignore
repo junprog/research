@@ -13,6 +13,7 @@ ST_A/
 ST_B/
 UCF-QNRF/
 t_UCF-QNRF/
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
